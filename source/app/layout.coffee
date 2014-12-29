@@ -60,3 +60,5 @@ module.exports = React.createFactory React.createClass
           @renderNavs()
       $.div className: 'body',
         AppArticle page: @state.page
+
+      $.div className: 'copyright', '浙ICP备14043687'

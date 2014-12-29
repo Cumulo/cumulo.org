@@ -42,3 +42,8 @@
 }
 
 .app-layout .content {}
+
+.app-layout .copyright {
+    text-align: center;
+    color: hsl(0,0%,80%);
+}
