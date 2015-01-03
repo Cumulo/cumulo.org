@@ -49,8 +49,8 @@ module.exports = React.createFactory React.createClass
 
     ratio = (Math.min @props.scrollTop, 400) / 400
     headerStyle =
-      height: "#{800 - (700 * ratio)}px"
-      fontSize: "#{400 - (360 * ratio)}px"
+      height: "#{500 - (400 * ratio)}px"
+      fontSize: "#{300 - (260 * ratio)}px"
       backgroundColor: "hsla(0,0%,0%,#{ratio * 0.9})"
 
     $.div className: 'app-layout',
