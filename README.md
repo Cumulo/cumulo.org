@@ -1,16 +1,12 @@
 
-Cumulo's home page
+Cumulo.org
 ----
 
-http://cumulo.org/
+Discuss on [Gitter](https://gitter.im/Cumulo/cumulo.org).
 
-WIP...
+### Development
 
-### About
-
-### Image Source
-
-http://science-edu.larc.nasa.gov/SCOOL/cumulonimbus.html
+https://github.com/mvc-works/webpack-workflow
 
 ### License
 

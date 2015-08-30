@@ -1,0 +1,51 @@
+
+@import url(Poiret-One.css);
+
+.app-project {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: 'Poiret One', 'Century Gothic', Helvetica, sans-serif;
+}
+
+.app-logo {
+  width: 120px;
+  height: 120px;
+  background-image: url(http://repo/Cumulo/logo/cumulo.png);
+  background-size: cover;
+}
+
+.app-name {
+  font-size: 30px;
+}
+
+.app-page img {
+  display: block;
+  margin: 1em auto;
+  border: 1px solid #eee;
+  background-color: #fafafa;
+}
+
+.app-body {
+  width: 800px;
+  margin: 0 auto;
+  font-size: 16px;
+}
+
+.app-body h3 {
+  margin-top: 4em;
+  margin-left: -1em;
+}
+
+.app-about {
+  width: 600px;
+  margin: 0 auto;
+  font-weight: lighter;
+  color: #888;
+}
+
+.app-footer {
+  text-align: center;
+  color: #ccc;
+  margin-top: 200px;
+}
