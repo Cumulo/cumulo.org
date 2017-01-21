@@ -2,11 +2,11 @@
 Cumulo.org
 ----
 
-Discuss on [Gitter](https://gitter.im/Cumulo/cumulo.org).
+Docs for Cumulo.org with Respo.
 
-### Development
+### Develop
 
-https://github.com/mvc-works/webpack-workflow
+Workflow https://github.com/mvc-works/stack-workflow
 
 ### License
 
