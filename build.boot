@@ -9,6 +9,8 @@
                   [adzerk/boot-test          "1.1.2"       :scope "test"]
                   [mvc-works/hsl             "0.1.2"]
                   [respo/ui                  "0.1.6"]
+                  [respo/router              "0.2.2"]
+                  [respo/markdown            "0.1.1"]
                   [respo                     "0.3.35"]])
 
 (require '[adzerk.boot-cljs   :refer [cljs]]
@@ -24,7 +26,7 @@
 (task-options!
   pom {:project     'Cumulo/cumulo-org
        :version     +version+
-       :description "Workflow"
+       :description "Cumulo Project"
        :url         "https://github.com/Cumulo/cumulo.org"
        :scm         {:url "https://github.com/Cumulo/cumulo.org"}
        :license     {"MIT" "http://opensource.org/licenses/mit-license.php"}})
@@ -33,7 +35,7 @@
   (make-html
     (html {}
       (head {}
-        (title {:attrs {:innerHTML "Stack Workflow"}})
+        (title {:attrs {:innerHTML "Cumulo Project"}})
         (link {:attrs {:rel "icon" :type "image/png" :href "http://logo.mvc-works.org/mvc.png"}})
         (link {:attrs {:rel "stylesheet" :type "text/css" :href "style.css"}})
         (link (:attrs {:rel "manifest" :href "manifest.json"}))
@@ -68,7 +70,7 @@
 (deftask dev []
   (set-env!
     :asset-paths #{"assets/"}
-    :resource-paths #{"src/"})
+    :resource-paths #{"src/" "polyfill/"})
   (comp
     (watch)
     (html-file :data {:build? false})
@@ -84,7 +86,8 @@
 
 (deftask build-advanced []
   (set-env!
-    :asset-paths #{"assets/"})
+    :asset-paths #{"assets/"}
+    :resource-paths #{"src/" "polyfill/"})
   (comp
     (transform-stack :filename "stack-sepal.ir")
     (cljs :optimizations :advanced
@@ -99,7 +102,7 @@
 
 (deftask rsync []
   (with-pre-wrap fileset
-    (sh "rsync" "-r" "target/" "cumulo.org:repo/Cumulo/cumulo-org" "--exclude" "main.out" "--delete")
+    (sh "rsync" "-r" "target/" "cumulo.org:repo/Cumulo/cumulo.org" "--exclude" "main.out" "--delete")
     fileset))
 
 (deftask build []
