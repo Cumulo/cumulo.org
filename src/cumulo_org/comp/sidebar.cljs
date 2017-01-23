@@ -9,7 +9,12 @@
 
 (defn on-home [e dispatch!] (dispatch! :router/set "/"))
 
-(defn on-about [e dispatch!] (dispatch! :router/set "/about.html"))
+(def style-link {:font-size 20, :font-weight 300, :cursor :pointer, :padding "0 16px"})
+
+(defn render-link [text path]
+  (div
+   {:style style-link, :event {:click (fn [e dispatch!] (dispatch! :router/set path))}}
+   (comp-text text nil)))
 
 (def style-logo
   {:font-size 40,
@@ -20,8 +25,6 @@
 
 (def style-sidebar {:width "24%"})
 
-(def style-link {:font-size 20, :font-weight 300, :cursor :pointer, :padding "0 16px"})
-
 (def comp-sidebar
   (create-comp
    :sidebar
@@ -30,4 +33,5 @@
        (div
         {:style style-sidebar}
         (div {:style style-logo, :event {:click on-home}} (comp-text "Cumulo" nil))
-        (div {:style style-link, :event {:click on-about}} (comp-text "About" nil)))))))
+        (render-link "About" "about.html")
+        (render-link "Workflow" "workflow.html"))))))

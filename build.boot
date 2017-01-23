@@ -10,7 +10,7 @@
                   [mvc-works/hsl             "0.1.2"]
                   [respo/ui                  "0.1.6"]
                   [respo/router              "0.2.2"]
-                  [respo/markdown            "0.1.1"]
+                  [respo/markdown            "0.1.2"]
                   [respo                     "0.3.36"]])
 
 (require '[adzerk.boot-cljs   :refer [cljs]]
@@ -38,6 +38,7 @@
         (title {:attrs {:innerHTML "Cumulo Project"}})
         (link {:attrs {:rel "icon" :type "image/png" :href "http://logo.mvc-works.org/mvc.png"}})
         (link {:attrs {:rel "stylesheet" :type "text/css" :href "style.css"}})
+        (link {:attrs {:rel "stylesheet" :type "text/css" :href "md.css"}})
         (link (:attrs {:rel "manifest" :href "manifest.json"}))
         (meta' {:attrs {:charset "utf-8"}})
         (meta' {:attrs {:name "viewport" :content "width=device-width, initial-scale=1"}})
@@ -70,7 +71,7 @@
 (deftask dev []
   (set-env!
     :asset-paths #{"assets/"}
-    :resource-paths #{"src/" "polyfill/"})
+    :source-paths #{"src/" "polyfill/"})
   (comp
     (watch)
     (html-file :data {:build? false})
@@ -87,7 +88,7 @@
 (deftask build-advanced []
   (set-env!
     :asset-paths #{"assets/"}
-    :resource-paths #{"src/" "polyfill/"})
+    :source-paths #{"src/" "polyfill/"})
   (comp
     (transform-stack :filename "stack-sepal.ir")
     (cljs :optimizations :advanced

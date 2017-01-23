@@ -14,6 +14,7 @@
         (title {:attrs {:innerHTML "Cumulo Project"}})
         (link {:attrs {:rel "icon" :type "image/png" :href "http://logo.mvc-works.org/mvc.png"}})
         (link {:attrs {:rel "stylesheet" :type "text/css" :href "style.css"}})
+        (link {:attrs {:rel "stylesheet" :type "text/css" :href "md.css"}})
         (link (:attrs {:rel "manifest" :href "manifest.json"}))
         (meta' {:attrs {:charset "utf-8"}})
         (meta' {:attrs {:name "viewport" :content "width=device-width, initial-scale=1"}})
@@ -38,6 +39,7 @@
 
 (defn -main []
   (spit "target/index.html" (generate-html #{:shell} ""))
-  (spit "target/about.html" (generate-html #{:shell} "about.html")))
+  (spit "target/about.html" (generate-html #{:shell} "about.html"))
+  (spit "target/workflow.html" (generate-html #{:shell} "workflow.html")))
 
 (-main)

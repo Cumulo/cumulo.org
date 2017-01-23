@@ -16,15 +16,3 @@ In order to diff, the server need to render all the data that clients may need. 
 Waiting for server responses is slow in current time. Cumulo prepared a **Recoreder** of pending actions for such cases, by learning from distributed systems. The page's Model is computed from Store and pending actions, so [Store is not the Model, initial state and actions is](https://medium.com/cumulo-project/in-flux-and-ssot-store-is-not-the-truth-actions-is-8094dcfcdb12)!
 
 ![](recorder.png)
-
-### Status of Cumulo
-
-Now Cumulo is an experimental project. I'm not working on it fulltime. Here's roughly the plan:
-
-* Immutable JavaScript -- Ready
-* ClojureScript persistent data structure -- Not started
-* Cumulo implementation -- Initial steps
-* Demo apps -- Initial steps
-
-If you are interested in Cumulo, we may discuss on [Twitter](https://twitter.com/jiyinyiyong) and [Gitter](https://gitter.im/Cumulo/cumulo.org).
-

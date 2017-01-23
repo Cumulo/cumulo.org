@@ -9,7 +9,7 @@
             [respo-markdown.comp.md-article :refer [comp-md-article]]
             [cumulo-org.doc :as doc]))
 
-(def style-container {:padding 32})
+(def style-container {:line-height "24px", :font-size 16, :overflow :auto, :padding 32})
 
 (def comp-content
   (create-comp
@@ -24,5 +24,6 @@
            "home" doc/index
            "index.html" doc/index
            "about.html" doc/about
+           "workflow.html" doc/workflow
            "404")
          {}))))))
