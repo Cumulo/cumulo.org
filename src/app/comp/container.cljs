@@ -9,26 +9,20 @@
             [respo.comp.space :refer [=<]]
             [reel.comp.reel :refer [comp-reel]]
             [respo-md.comp.md :refer [comp-md]]
-            [app.config :refer [dev?]]))
+            [app.config :refer [dev?]]
+            [app.macros :refer [inline-resource]]
+            [respo-md.comp.md :refer [comp-md-block]]))
 
 (defcomp
  comp-container
  (reel)
  (let [store (:store reel), states (:states store)]
    (div
-    {:style (merge ui/global ui/row)}
-    (textarea
-     {:value (:content store),
-      :placeholder "Content",
-      :style (merge ui/flex ui/textarea {:height 320}),
-      :on-input (action-> :content (:value %e))})
-    (=< "8px" nil)
+    {:style (merge ui/global ui/fullscreen ui/row {:justify-content :center})}
     (div
-     {:style ui/flex}
-     (comp-md "This is some content with `code`")
-     (=< "8px" nil)
-     (button
-      {:style ui/button,
-       :inner-text (str "run"),
-       :on-click (fn [e d! m!] (println (:content store)))}))
+     {:style {:max-width 800,
+              :width "60%",
+              :border (str "1px solid " (hsl 0 0 90)),
+              :padding 16}}
+     (comp-md-block (inline-resource "guide.md") {:class-name "markdown-body"}))
     (when dev? (cursor-> :reel comp-reel states reel {})))))
