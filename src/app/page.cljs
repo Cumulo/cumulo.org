@@ -19,7 +19,8 @@
     base-info
     {:styles ["/entry/main.css" (:dev-ui config/site)],
      :scripts ["/client.js"],
-     :inline-styles [(slurp "node_modules/github-markdown-css/github-markdown.css")]})))
+     :inline-styles [(slurp "entry/github-gist.css")
+                     (slurp "node_modules/github-markdown-css/github-markdown.css")]})))
 
 (def local-bundle? (= "local-bundle" (get-env! "mode")))
 
@@ -36,7 +37,8 @@
       {:styles [(:release-ui config/site)],
        :scripts (map #(-> % :output-name prefix-cdn) assets),
        :ssr "respo-ssr",
-       :inline-styles [(slurp "node_modules/github-markdown-css/github-markdown.css")
+       :inline-styles [(slurp "entry/github-gist.css")
+                       (slurp "node_modules/github-markdown-css/github-markdown.css")
                        (slurp "./entry/main.css")]}))))
 
 (defn main! []
