@@ -2,17 +2,11 @@
 Cumulo.org
 ----
 
-Docs for Cumulo.org with Respo.
+> Home page for http://cumulo.org
 
-Site http://cumulo.org/
+### Workflow
 
-### Develop
-
-```bash
-lumo -i doc.cljs # compile Markdown files into Clojure code
-```
-
-Workflow https://github.com/mvc-works/stack-workflow
+Workflow https://github.com/mvc-works/calcit-workflow
 
 ### License
 
