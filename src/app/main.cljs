@@ -23,7 +23,7 @@
 (def mount-target (.querySelector js/document ".app"))
 
 (defn persist-storage! []
-  (.setItem js/localStorage (:storage config/site) (pr-str (:store @*reel))))
+  (.setItem js/localStorage (:storage-key config/site) (pr-str (:store @*reel))))
 
 (defn render-app! [renderer]
   (renderer mount-target (comp-container @*reel) #(dispatch! %1 %2)))
@@ -31,6 +31,7 @@
 (def ssr? (some? (js/document.querySelector "meta.respo-ssr")))
 
 (defn main! []
+  (println "Running mode:" (if config/dev? "dev" "release"))
   (if ssr? (render-app! realize-ssr!))
   (.registerLanguage hljs "clojure" clojure-lang)
   (.registerLanguage hljs "bash" bash-lang)
@@ -39,7 +40,7 @@
   (listen-devtools! "a" dispatch!)
   (.addEventListener js/window "beforeunload" persist-storage!)
   (js/setInterval persist-storage! (* 1000 60))
-  (let [raw (.getItem js/localStorage (:storage config/site))]
+  (let [raw (.getItem js/localStorage (:storage-key config/site))]
     (when (some? raw) (dispatch! :hydrate-storage (read-string raw))))
   (println "App started."))
 
@@ -47,5 +48,3 @@
   (clear-cache!)
   (reset! *reel (refresh-reel @*reel schema/store updater))
   (println "Code updated."))
-
-(set! (.-onload js/window) main!)
