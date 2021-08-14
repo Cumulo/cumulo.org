@@ -1,4 +1,7 @@
 
+@import url("./github-gist.css");
+@import url("../node_modules/github-markdown-css/github-markdown.css");
+
 body {
   margin: 0;
   overscroll-behavior-y: none;
