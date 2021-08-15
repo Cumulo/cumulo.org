@@ -17,32 +17,9 @@ Find out more on https://github.com/Cumulo/
 
 ### Model part
 
-`recollect.macros/deftwig` can be used to declare data pieces(called twigs), which is similar to React components:
+_TODO_
 
-```clojure
-(deftwig
- twig-container
- (db session records)
- (let [logged-in? (some? (:user-id session))
-       router (:router session)
-       base-data {:logged-in? logged-in?, :session session, :reel-length (count records)}]
-   (merge
-    base-data
-    (if logged-in?
-      {:user (twig-user (get-in db [:users (:user-id session)])),
-       :router (assoc
-                router
-                :data
-                (case (:name router)
-                  :home (:pages db)
-                  :profile (twig-members (:sessions db) (:users db))
-                  {})),
-       :count (count (:sessions db)),
-       :color (color/randomColor)}
-      nil))))
-```
-
-Twigs can be composed too.
+More: https://github.com/Cumulo/cumulo-workflow.calcit .
 
 ### Syncing
 
