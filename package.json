@@ -12,13 +12,14 @@
   "license": "MIT",
   "devDependencies": {
     "bottom-tip": "^0.1.5",
-    "vite": "^4.4.12"
+    "vite": "^5.0.6"
   },
   "dependencies": {
-    "@calcit/procs": "^0.8.4",
+    "@calcit/procs": "^0.8.14",
     "cirru-color": "^0.2.3",
-    "github-markdown-css": "^5.2.0",
-    "highlight.js": "^11.8.0",
+    "copy-text-to-clipboard": "^3.2.0",
+    "github-markdown-css": "^5.4.0",
+    "highlight.js": "^11.9.0",
     "shortid": "^2.2.16"
   }
 }
