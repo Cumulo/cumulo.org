@@ -1,21 +1,22 @@
 
-{} (:about "|Machine-generated snapshot. Do not edit directly — changes will be overwritten. Use `cr query` to inspect and `cr edit`/`cr tree` to modify. Run `cr docs agents --full` first. Manual edits must follow format and schema conventions, then run `cr edit format`.") (:package |app) (:version |0.0.1)
+{} (:about "|Machine-generated snapshot. Do not edit directly — changes will be overwritten. Use `calcit query` to inspect and `calcit edit`/`calcit tree` to modify. Run `calcit docs agents --full` first. Manual edits must follow format and schema conventions, then run `calcit edit format`.") (:package |app)
   :entries $ {}
     :default $ {} (:description |) (:init-fn 'app.main/main!) (:mode :js) (:reload-fn 'app.main/reload!)
+      :feature-policy $ {}
       :modules $ [] |respo.calcit/ |lilac/ |memof/ |respo-ui.calcit/ |respo-markdown.calcit/ |reel.calcit/
       :type-slots $ {}
   :files $ {}
-    |app.comp.container $ %{} 'FileEntry
+    'app.comp.container $ %{} 'FileEntry
       :defs $ {}
-        |comp-container $ %{} 'CodeEntry (:doc |)
+        'comp-container $ %{} 'CodeEntry (:doc |)
           :code $ quote
             defcomp comp-container (reel)
               let
                   store $ unsafe-coerce (get reel :store) 'app.types/Store
-                  states $ &struct:get store :states
+                  states $ :states store
                 div
                   {} $ :style
-                    merge ui/global ui/fullscreen ui/row $ {} (:justify-content :center)
+                    merge ui/global ui/fullscreen ui/row $ {} (:justify-content |center)
                   div
                     {} $ :style
                       {} (:max-width 800) (:width |60%)
@@ -33,11 +34,16 @@
                   when dev? $ comp-reel (>> states :reel) reel ({})
           :examples $ []
           :schema $ :: 'Dynamic
-        |slurp $ %{} 'CodeEntry (:doc |)
+        'slurp $ %{} 'CodeEntry (:doc |)
           :code $ quote
-            defmacro slurp (path) (read-file path)
+            defmacro slurp (path)
+              read-file $ str path
           :examples $ []
-          :schema $ :: 'Dynamic
+          :schema $ :: 'Macro
+            {}
+              :capabilities $ #{} :fs-read
+              :expansion $ :: 'Expr 'String
+              :required $ [] (:: 'Expr 'String)
       :ns $ %{} 'NsEntry (:doc |)
         :code $ quote
           ns app.comp.container $ :require
@@ -51,9 +57,9 @@
             respo-md.comp.md :refer $ comp-md-block
             |highlight.js :default hljs
             |cirru-color :as color
-    |app.config $ %{} 'FileEntry
+    'app.config $ %{} 'FileEntry
       :defs $ {}
-        |cdn? $ %{} 'CodeEntry (:doc |)
+        'cdn? $ %{} 'CodeEntry (:doc |)
           :code $ quote
             def cdn? $ cond
                 exists? js/window
@@ -62,13 +68,13 @@
               :else false
           :examples $ []
           :schema $ :: 'Dynamic
-        |dev? $ %{} 'CodeEntry (:doc |)
+        'dev? $ %{} 'CodeEntry (:doc |)
           :code $ quote
             def dev? $ = |dev
               option:unwrap-or (get-env |mode) |release
           :examples $ []
           :schema $ :: 'Bool
-        |site $ %{} 'CodeEntry (:doc |)
+        'site $ %{} 'CodeEntry (:doc |)
           :code $ quote
             def site $ %{} app.types/SiteConfig (:dev-ui |http://localhost:8100/main-fonts.css) (:release-ui |http://cdn.tiye.me/favored-fonts/main-fonts.css) (:cdn-url |http://cdn.tiye.me/cumulo-org/) (:title "|Cumulo Home Page") (:icon |http://cdn.tiye.me/logo/respo.png) (:storage-key |cumulo.org)
           :examples $ []
@@ -77,20 +83,20 @@
         :code $ quote
           ns app.config $ :require
             app.types :refer $ SiteConfig
-    |app.main $ %{} 'FileEntry
+    'app.main $ %{} 'FileEntry
       :defs $ {}
-        |*reel $ %{} 'CodeEntry (:doc |)
+        '*reel $ %{} 'CodeEntry (:doc |)
           :code $ quote
             defatom *reel $ -> reel-schema/reel (assoc :base schema/store) (assoc :store schema/store)
           :examples $ []
           :schema $ :: 'Dynamic
-        |dispatch! $ %{} 'CodeEntry (:doc |)
+        'dispatch! $ %{} 'CodeEntry (:doc |)
           :code $ quote
             defn dispatch! (op) (; println |Dispatch: op)
               reset! *reel $ reel-updater updater @*reel op
           :examples $ []
           :schema $ :: 'Dynamic
-        |main! $ %{} 'CodeEntry (:doc |)
+        'main! $ %{} 'CodeEntry (:doc |)
           :code $ quote
             defn main! ()
               println "|Running mode:" $ if config/dev? |dev |release
@@ -103,39 +109,39 @@
               js/window.addEventListener |beforeunload persist-storage!
               js/setInterval persist-storage! $ * 1000 60
               let
-                  raw $ js/localStorage.getItem (&struct:get config/site :storage-key)
+                  raw $ js/localStorage.getItem (:storage-key config/site)
                 when (js-present? raw)
                   dispatch! $ :: :hydrate-storage
                     parse-cirru-edn $ unsafe-coerce raw String
               println "|App started."
           :examples $ []
           :schema $ :: 'Dynamic
-        |mount-target $ %{} 'CodeEntry (:doc |)
+        'mount-target $ %{} 'CodeEntry (:doc |)
           :code $ quote
             def mount-target $ js/document.querySelector |.app
           :examples $ []
           :schema $ :: 'Dynamic
-        |persist-storage! $ %{} 'CodeEntry (:doc |)
+        'persist-storage! $ %{} 'CodeEntry (:doc |)
           :code $ quote
             defn persist-storage! (? e)
-              js/localStorage.setItem (&struct:get config/site :storage-key)
-                format-cirru-edn $ &struct:get @*reel :store
+              js/localStorage.setItem (:storage-key config/site)
+                format-cirru-edn $ reel-schema/read-field @*reel :store
           :examples $ []
           :schema $ :: 'Dynamic
-        |reload! $ %{} 'CodeEntry (:doc |)
+        'reload! $ %{} 'CodeEntry (:doc |)
           :code $ quote
             defn reload! () (clear-cache!)
               reset! *reel $ refresh-reel @*reel schema/store updater
               println "|Code updated."
           :examples $ []
           :schema $ :: 'Dynamic
-        |render-app! $ %{} 'CodeEntry (:doc |)
+        'render-app! $ %{} 'CodeEntry (:doc |)
           :code $ quote
             defn render-app! (renderer)
               renderer mount-target (comp-container @*reel) dispatch!
           :examples $ []
           :schema $ :: 'Dynamic
-        |ssr? $ %{} 'CodeEntry (:doc |)
+        'ssr? $ %{} 'CodeEntry (:doc |)
           :code $ quote
             def ssr? $ js-present? (js/document.querySelector |meta.respo-ssr)
           :examples $ []
@@ -155,9 +161,9 @@
             |highlight.js :default hljs
             |highlight.js/lib/languages/clojure :default clojure-lang
             |highlight.js/lib/languages/bash :default bash-lang
-    |app.page $ %{} 'FileEntry
+    'app.page $ %{} 'FileEntry
       :defs $ {}
-        |base-info $ %{} 'CodeEntry (:doc |)
+        'base-info $ %{} 'CodeEntry (:doc |)
           :code $ quote
             def base-info $ {}
               :title $ :title config/site
@@ -166,7 +172,7 @@
               :inline-html nil
           :examples $ []
           :schema $ :: 'Dynamic
-        |dev-page $ %{} 'CodeEntry (:doc |)
+        'dev-page $ %{} 'CodeEntry (:doc |)
           :code $ quote
             defn dev-page () $ make-page |
               merge base-info $ {}
@@ -175,7 +181,7 @@
                 :inline-styles $ [] (slurp |entry/github-gist.css) (slurp |node_modules/github-markdown-css/github-markdown.css)
           :examples $ []
           :schema $ :: 'Dynamic
-        |main! $ %{} 'CodeEntry (:doc |)
+        'main! $ %{} 'CodeEntry (:doc |)
           :code $ quote
             defn main! ()
               println "|Running mode:" $ if config/dev? |dev |release
@@ -184,7 +190,7 @@
                 spit |dist/index.html $ prod-page
           :examples $ []
           :schema $ :: 'Dynamic
-        |prod-page $ %{} 'CodeEntry (:doc |)
+        'prod-page $ %{} 'CodeEntry (:doc |)
           :code $ quote
             defn prod-page () $ let
                 reel $ -> reel-schema/reel (assoc :base schema/store) (assoc :store schema/store)
@@ -212,9 +218,9 @@
             app.config :as config
             cumulo-util.build :refer $ get-ip!
             clojure.core.strint :refer $ <<
-    |app.schema $ %{} 'FileEntry
+    'app.schema $ %{} 'FileEntry
       :defs $ {}
-        |store $ %{} 'CodeEntry (:doc |)
+        'store $ %{} 'CodeEntry (:doc |)
           :code $ quote
             def store $ %{} app.types/Store
               :states $ {}
@@ -225,26 +231,26 @@
         :code $ quote
           ns app.schema $ :require
             app.types :refer $ Store
-    |app.types $ %{} 'FileEntry
+    'app.types $ %{} 'FileEntry
       :defs $ {}
-        |SiteConfig $ %{} 'CodeEntry (:doc |)
+        'SiteConfig $ %{} 'CodeEntry (:doc |)
           :code $ quote
             defstruct SiteConfig (:dev-ui 'String) (:release-ui 'String) (:cdn-url 'String) (:title 'String) (:icon 'String) (:storage-key 'String)
           :examples $ []
-          :schema $ :: 'Dynamic
-        |Store $ %{} 'CodeEntry (:doc |)
+          :schema $ :: 'StructDef
+        'Store $ %{} 'CodeEntry (:doc |)
           :code $ quote
             defstruct Store (:states 'Map) (:content 'String)
           :examples $ []
-          :schema $ :: 'Dynamic
+          :schema $ :: 'StructDef
       :ns $ %{} 'NsEntry (:doc |)
         :code $ quote (ns app.types)
-    |app.updater $ %{} 'FileEntry
+    'app.updater $ %{} 'FileEntry
       :defs $ {}
-        |updater $ %{} 'CodeEntry (:doc |)
+        'updater $ %{} 'CodeEntry (:doc |)
           :code $ quote
             defn updater (store op op-id op-time)
-              tag-match op
+              match op
                 (:states cursor s) (update-states store cursor s)
                 (:content c) (assoc store :content c)
                 (:hydrate-storage d) d
