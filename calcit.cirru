@@ -103,6 +103,24 @@
             -> reel-schema/reel (assoc :base schema/store) (assoc :store schema/store)
           :examples $ []
           :schema $ :: 'Ref $ :: 'Map 'Tag 'Dynamic
+        'decode-store $ %{} 'CodeEntry
+          :doc "|Validates open persisted data before it enters the typed application store."
+          :code $ quote $ defn decode-store (data)
+            let
+                states $ get data :states
+                content $ get data :content
+              if
+                and (option:some? states) (option:some? content)
+                  map? $ option:unwrap states
+                  string? $ option:unwrap content
+                %some $ %{} app.types/Store
+                  :states $ assert-type (option:unwrap states) 'Map
+                  :content $ assert-type (option:unwrap content) 'String
+                %none
+          :examples $ []
+          :schema $ :: 'Fn $ {}
+            :args $ [] $ :: 'Map 'Tag 'Dynamic
+            :return $ :: 'Option 'app.types/Store
         'dispatch! $ %{} 'CodeEntry (:doc |)
           :code $ quote $ defn dispatch! (op) (; println |Dispatch: op)
             reset! *reel $ reel-updater updater @*reel op
@@ -123,7 +141,13 @@
             let
                 raw $ js/localStorage.getItem $ :storage-key config/site
               when (js-present? raw)
-                dispatch! $ :: :hydrate-storage $ parse-cirru-edn (unsafe-coerce raw String)
+                let
+                    parsed $ parse-cirru-edn $ unsafe-coerce raw String
+                  when (map? parsed)
+                    let
+                        restored $ decode-store $ assert-type parsed (:: 'Map 'Tag 'Dynamic)
+                      when (option:some? restored)
+                        dispatch! $ :: :hydrate-storage $ option:unwrap restored
             println "|App started."
           :examples $ []
           :schema $ :: 'Fn $ {} (:return 'Dynamic)

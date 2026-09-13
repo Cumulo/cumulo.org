@@ -27,6 +27,15 @@
       :typeNotFull 1
       :unresolved 1
       :unsafeCoerce 0
+    |app.main/decode-store $ {} (:codeDynamic 0)
+      :codeNil 0
+      :declaredOptional 0
+      :deprecatedCalls 0
+      :schemaDynamic 1
+      :typeNone 0
+      :typeNotFull 1
+      :unresolved 1
+      :unsafeCoerce 0
     |app.main/dispatch! $ {} (:codeDynamic 0)
       :codeNil 0
       :declaredOptional 0
@@ -121,10 +130,10 @@
     :codeNil 2
     :declaredOptional 0
     :deprecatedCalls 0
-    :schemaDynamic 13
+    :schemaDynamic 14
     :typeNone 5
-    :typeNotFull 12
-    :unresolved 15
+    :typeNotFull 13
+    :unresolved 16
     :unsafeCoerce 5
   :scope $ {} (:includeDependencies false)
     :namespace nil
