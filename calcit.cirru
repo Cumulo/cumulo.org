@@ -3,14 +3,30 @@
   :about "|Machine-generated snapshot. Do not edit directly — changes will be overwritten. Use `calcit query` to inspect and `calcit edit`/`calcit tree` to modify. Run `calcit docs agents --contract` before mutations; use `--full` for first orientation or changed contract digest. Manual edits must follow format and schema conventions, then run `calcit edit format`."
   :package |app
   :entries $ {} $ :default
-    {} (:description |) (:init-fn 'app.main/main!) (:mode :js)
-      :reload-fn 'app.main/reload!
+    {} (:description |) (:init-fn 'app.main/main!) (:mode :js) (:reload-fn 'app.main/reload!)
       :feature-policy $ {}
       :modules $ [] |respo.calcit/ |lilac/ |memof/ |respo-ui.calcit/ |respo-markdown.calcit/ |reel.calcit/
       :type-slots $ {}
   :files $ {}
     'app.comp.container $ %{} 'FileEntry
       :defs $ {}
+        'HighlightResultHost $ %{} 'CodeEntry (:doc |)
+          :code $ quote $ deftrait HighlightResultHost (:value 'String)
+          :examples $ []
+          :ffi $ {} (:backend :js) (:kind :external-object)
+          :schema $ :: 'Trait
+        'HljsHost $ %{} 'CodeEntry (:doc |)
+          :code $ quote $ deftrait HljsHost
+            .register-language! $ :: 'Fn $ {}
+              :args $ [] 'app.comp.container/HljsHost 'String 'Dynamic
+              :return 'Unit
+            .highlight $ :: 'Fn $ {}
+              :args $ [] 'app.comp.container/HljsHost 'String 'JsObject
+              :return 'app.comp.container/HighlightResultHost
+          :examples $ []
+          :ffi $ {} (:backend :js) (:kind :external-object)
+            :names $ {} $ :register-language! |registerLanguage
+          :schema $ :: 'Trait
         'comp-container $ %{} 'CodeEntry (:doc |)
           :code $ quote $ defcomp comp-container (reel)
             let
@@ -29,12 +45,12 @@
                     {} (:class-name |markdown-body)
                       :highlight $ fn (code lang)
                         if (= lang |cirru) (color/generate code)
-                          .-value $ unsafe-coerce
-                            .!highlight hljs code $ js-object $ :language lang
-                            , js-object
+                          .-value $ .highlight (unsafe-coerce hljs 'app.comp.container/HljsHost) code $ js-object (:language lang)
                 when dev? $ comp-reel (>> states :reel) reel $ {}
           :examples $ []
-          :schema $ :: 'Dynamic
+          :schema $ :: 'Fn $ {} (:return 'respo.schema/Component)
+            :args $ [] 'Dynamic
+            :features $ #{} :js-ffi
         'slurp $ %{} 'CodeEntry (:doc |)
           :code $ quote $ defmacro slurp (path)
             read-file $ str path
@@ -63,8 +79,7 @@
             cond
                 exists? js/window
                 , false
-              (exists? js/process)
-                = |true js/process.env.cdn
+              (exists? js/process) (= |true js/process.env.cdn)
               :else false
           :examples $ []
           :schema $ :: 'Dynamic
@@ -75,13 +90,7 @@
           :schema $ :: 'Bool
         'site $ %{} 'CodeEntry (:doc |)
           :code $ quote $ def site
-            %{} app.types/SiteConfig
-              :dev-ui |http://localhost:8100/main-fonts.css
-              :release-ui |http://cdn.tiye.me/favored-fonts/main-fonts.css
-              :cdn-url |http://cdn.tiye.me/cumulo-org/
-              :title "|Cumulo Home Page"
-              :icon |http://cdn.tiye.me/logo/respo.png
-              :storage-key |cumulo.org
+            %{} app.types/SiteConfig (:dev-ui |http://localhost:8100/main-fonts.css) (:release-ui |http://cdn.tiye.me/favored-fonts/main-fonts.css) (:cdn-url |http://cdn.tiye.me/cumulo-org/) (:title "|Cumulo Home Page") (:icon |http://cdn.tiye.me/logo/respo.png) (:storage-key |cumulo.org)
           :examples $ []
           :schema $ :: 'app.types/SiteConfig
       :ns $ %{} 'NsEntry (:doc |)
@@ -93,22 +102,23 @@
           :code $ quote $ defatom *reel
             -> reel-schema/reel (assoc :base schema/store) (assoc :store schema/store)
           :examples $ []
-          :schema $ :: 'Dynamic
+          :schema $ :: 'Ref $ :: 'Map 'Tag 'Dynamic
         'dispatch! $ %{} 'CodeEntry (:doc |)
           :code $ quote $ defn dispatch! (op) (; println |Dispatch: op)
             reset! *reel $ reel-updater updater @*reel op
           :examples $ []
-          :schema $ :: 'Dynamic
+          :schema $ :: 'Fn $ {} (:return 'Unit)
+            :args $ [] 'Dynamic
         'main! $ %{} 'CodeEntry (:doc |)
           :code $ quote $ defn main! ()
             println "|Running mode:" $ if config/dev? |dev |release
             if ssr? $ render-app! realize-ssr!
-            .!registerLanguage hljs |clojure clojure-lang
-            .!registerLanguage hljs |bash bash-lang
+            .register-language! (unsafe-coerce hljs 'app.comp.container/HljsHost) |clojure clojure-lang
+            .register-language! (unsafe-coerce hljs 'app.comp.container/HljsHost) |bash bash-lang
             render-app! render!
             add-watch *reel :changes $ fn (r p) (render-app! render!)
             listen-devtools! |k dispatch!
-            js/window.addEventListener |beforeunload persist-storage!
+            js/window.addEventListener |beforeunload $ fn (event) (persist-storage!)
             js/setInterval persist-storage! $ * 1000 60
             let
                 raw $ js/localStorage.getItem $ :storage-key config/site
@@ -116,29 +126,41 @@
                 dispatch! $ :: :hydrate-storage $ parse-cirru-edn (unsafe-coerce raw String)
             println "|App started."
           :examples $ []
-          :schema $ :: 'Dynamic
+          :schema $ :: 'Fn $ {} (:return 'Dynamic)
+            :args $ []
+            :features $ #{} :js-ffi
         'mount-target $ %{} 'CodeEntry (:doc |)
-          :code $ quote $ def mount-target
-            js/document.querySelector |.app
+          :code $ quote $ defn mount-target () (js/document.querySelector |.app)
           :examples $ []
-          :schema $ :: 'Dynamic
+          :schema $ :: 'Fn $ {} (:return 'Dynamic)
+            :args $ []
+            :features $ #{} :js-ffi
         'persist-storage! $ %{} 'CodeEntry (:doc |)
-          :code $ quote $ defn persist-storage! (? e)
+          :code $ quote $ defn persist-storage! ()
             js/localStorage.setItem (:storage-key config/site)
               format-cirru-edn $ reel-schema/read-field @*reel :store
+            , &unit
           :examples $ []
-          :schema $ :: 'Dynamic
+          :schema $ :: 'Fn $ {} (:return 'Unit)
+            :args $ []
+            :features $ #{} :js-ffi
         'reload! $ %{} 'CodeEntry (:doc |)
           :code $ quote $ defn reload! () (clear-cache!)
-            reset! *reel $ refresh-reel @*reel schema/store updater
+            reset! *reel $ assert-type (refresh-reel @*reel schema/store updater) (:: 'Map 'Tag 'Dynamic)
             println "|Code updated."
           :examples $ []
-          :schema $ :: 'Dynamic
+          :schema $ :: 'Fn $ {} (:return 'Unit)
+            :args $ []
         'render-app! $ %{} 'CodeEntry (:doc |)
           :code $ quote $ defn render-app! (renderer)
-            renderer mount-target (comp-container @*reel) dispatch!
+            renderer (mount-target) (comp-container @*reel) dispatch!
           :examples $ []
-          :schema $ :: 'Dynamic
+          :schema $ :: 'Fn $ {} (:return 'Unit)
+            :args $ [] $ :: 'Fn
+              {} (:return 'Unit)
+                :args $ [] 'Dynamic 'respo.schema/Component $ :: 'Fn
+                  {} (:return 'Unit)
+                    :args $ [] 'Dynamic
         'ssr? $ %{} 'CodeEntry (:doc |)
           :code $ quote $ def ssr?
             js-present? $ js/document.querySelector |meta.respo-ssr
@@ -173,12 +195,9 @@
         'dev-page $ %{} 'CodeEntry (:doc |)
           :code $ quote $ defn dev-page ()
             make-page | $ merge base-info $ {}
-              :styles $ []
-                << "|http://~(get-ip!):8100/main.css"
-                , |/entry/main.css
+              :styles $ [] (<< "|http://~(get-ip!):8100/main.css") |/entry/main.css
               :scripts $ [] |/client.js
-              :inline-styles $ []
-                slurp |entry/github-gist.css
+              :inline-styles $ [] (slurp |entry/github-gist.css)
                 slurp |node_modules/github-markdown-css/github-markdown.css
           :examples $ []
           :schema $ :: 'Dynamic
@@ -202,8 +221,7 @@
                 :styles $ [] $ :release-ui config/site
                 :scripts $ map ("#()" -> % :output-name prefix-cdn) assets
                 :ssr |respo-ssr
-                :inline-styles $ []
-                  slurp |entry/github-gist.css
+                :inline-styles $ [] (slurp |entry/github-gist.css)
                   slurp |node_modules/github-markdown-css/github-markdown.css
                   slurp |./entry/main.css
           :examples $ []
@@ -254,7 +272,8 @@
               (:hydrate-storage d) d
               _ $ do (eprintln "|Unknown op:" op) store
           :examples $ []
-          :schema $ :: 'Dynamic
+          :schema $ :: 'Fn $ {} (:return 'app.types/Store)
+            :args $ [] 'app.types/Store 'Dynamic 'Dynamic 'Dynamic
       :ns $ %{} 'NsEntry (:doc |)
         :code $ quote $ ns app.updater
           :require $ respo.cursor :refer $ update-states
