@@ -3,9 +3,9 @@
   :about "|Machine-generated snapshot. Do not edit directly — changes will be overwritten. Use `calcit query` to inspect and `calcit edit`/`calcit tree` to modify. Run `calcit docs agents --contract` before mutations; use `--full` for first orientation or changed contract digest. Manual edits must follow format and schema conventions, then run `calcit edit format`."
   :package |app
   :entries $ {} $ :default
-    {} (:description |) (:init-fn 'app.main/main!) (:mode :js) (:reload-fn 'app.main/reload!)
+    {} (:description |) (:init-fn 'app.main/main!) (:mode :js) (:reload-fn 'app.main/reload!) (:target :browser)
       :feature-policy $ {}
-      :modules $ [] |respo.calcit/ |lilac/ |memof/ |respo-ui.calcit/ |respo-markdown.calcit/ |reel.calcit/
+      :modules $ [] |respo.calcit/ |respo-ui.calcit/ |respo-markdown.calcit/ |reel.calcit/ |js-ffi/
       :type-slots $ {}
   :files $ {}
     'app.comp.container $ %{} 'FileEntry
@@ -30,7 +30,7 @@
         'comp-container $ %{} 'CodeEntry (:doc |)
           :code $ quote $ defcomp comp-container (reel)
             let
-                store $ unsafe-coerce (get reel :store) 'app.types/Store
+                store $ :store reel
                 states $ :states store
               div
                 {} $ :style $ merge ui/global ui/fullscreen ui/row
@@ -44,12 +44,15 @@
                   comp-md-block (slurp |docs/guide.md)
                     {} (:class-name |markdown-body)
                       :highlight $ fn (code lang)
-                        if (= lang |cirru) (color/generate code)
-                          .-value $ .highlight (unsafe-coerce hljs 'app.comp.container/HljsHost) code $ js-object (:language lang)
-                when dev? $ comp-reel (>> states :reel) reel $ {}
+                        if
+                          and (string? code) (string? lang)
+                          if (= lang |cirru) (color/generate code)
+                            .-value $ .highlight (js-cast hljs 'app.comp.container/HljsHost) code $ js-object (:language lang)
+                          raise "|Highlight expects code and language Strings"
+                when dev? $ comp-typed-reel (>> states :reel) reel $ {}
           :examples $ []
           :schema $ :: 'Fn $ {} (:return 'respo.schema/Component)
-            :args $ [] 'Dynamic
+            :args $ [] $ :: 'reel.typed/State 'app.types/Op 'app.types/Store
             :features $ #{} :js-ffi
         'slurp $ %{} 'CodeEntry (:doc |)
           :code $ quote $ defmacro slurp (path)
@@ -66,23 +69,14 @@
             respo-ui.core :as ui
             respo.core :refer $ defcomp >> <> div button textarea span
             respo.comp.space :refer $ =<
-            reel.comp.reel :refer $ comp-reel
             respo-md.comp.md :refer $ comp-md
             app.config :refer $ dev?
             respo-md.comp.md :refer $ comp-md-block
             |highlight.js :default hljs
             |cirru-color :as color
+            reel.comp.reel :refer $ comp-typed-reel
     'app.config $ %{} 'FileEntry
       :defs $ {}
-        'cdn? $ %{} 'CodeEntry (:doc |)
-          :code $ quote $ def cdn?
-            cond
-                exists? js/window
-                , false
-              (exists? js/process) (= |true js/process.env.cdn)
-              :else false
-          :examples $ []
-          :schema $ :: 'Dynamic
         'dev? $ %{} 'CodeEntry (:doc |)
           :code $ quote $ def dev?
             = |dev $ option:unwrap-or (get-env |mode) |release
@@ -90,7 +84,7 @@
           :schema $ :: 'Bool
         'site $ %{} 'CodeEntry (:doc |)
           :code $ quote $ def site
-            %{} app.types/SiteConfig (:dev-ui |http://localhost:8100/main-fonts.css) (:release-ui |http://cdn.tiye.me/favored-fonts/main-fonts.css) (:cdn-url |http://cdn.tiye.me/cumulo-org/) (:title "|Cumulo Home Page") (:icon |http://cdn.tiye.me/logo/respo.png) (:storage-key |cumulo.org)
+            app.types/SiteConfig :dev-ui |http://localhost:8100/main-fonts.css :release-ui |http://cdn.tiye.me/favored-fonts/main-fonts.css :cdn-url |http://cdn.tiye.me/cumulo-org/ :title "|Cumulo Home Page" :icon |http://cdn.tiye.me/logo/respo.png :storage-key |cumulo.org
           :examples $ []
           :schema $ :: 'app.types/SiteConfig
       :ns $ %{} 'NsEntry (:doc |)
@@ -99,79 +93,99 @@
     'app.main $ %{} 'FileEntry
       :defs $ {}
         '*reel $ %{} 'CodeEntry (:doc |)
-          :code $ quote $ defatom *reel
-            -> reel-schema/reel (assoc :base schema/store) (assoc :store schema/store)
+          :code $ quote $ defref *reel (typed/new-reel schema/store)
           :examples $ []
-          :schema $ :: 'Ref $ :: 'Map 'Tag 'Dynamic
+          :schema $ :: 'Ref $ :: 'reel.typed/State 'app.types/Op 'app.types/Store
         'decode-store $ %{} 'CodeEntry
           :doc "|Validates open persisted data before it enters the typed application store."
           :code $ quote $ defn decode-store (data)
             let
-                states $ get data :states
-                content $ get data :content
-              if
-                and (option:some? states) (option:some? content)
-                  map? $ option:unwrap states
-                  string? $ option:unwrap content
-                %some $ %{} app.types/Store
-                  :states $ assert-type (option:unwrap states) 'Map
-                  :content $ assert-type (option:unwrap content) 'String
-                %none
+                fields $ if (struct? data)
+                  struct-match data
+                    app.types/Store store $ &struct:to-map store
+                    _ _ data
+                  , data
+              match (try-decode-map-as fields 'app.types/Store)
+                (:ok store) (Option :some store)
+                (:err message)
+                  do (eprintln "|Invalid saved store:" message) (Option :none)
           :examples $ []
           :schema $ :: 'Fn $ {}
-            :args $ [] $ :: 'Map 'Tag 'Dynamic
+            :args $ [] 'Dynamic
             :return $ :: 'Option 'app.types/Store
+          :tests $ [] $ %{} 'TestEntry (:name |persisted-store-roundtrip)
+            :code $ quote $ let
+                stored $ app.types/Store :states
+                  {} $ :flag false
+                  , :content |hello
+                raw $ parse-cirru-edn $ format-cirru-edn stored
+              assert= (Option :some stored) (decode-store raw)
+              assert= (Option :none)
+                decode-store $ {}
+                  :states $ {}
+                  :content false
+            :tags $ #{} :unit
         'dispatch! $ %{} 'CodeEntry (:doc |)
-          :code $ quote $ defn dispatch! (op) (; println |Dispatch: op)
-            reset! *reel $ reel-updater updater @*reel op
+          :code $ quote $ defn dispatch! (op)
+            let
+                event $ if (enum? op) op $ raise "|Expected operation Enum"
+                control $ typed/decode-control event
+              reset! *reel $ match control
+                (:some action) (typed/apply-control updater @*reel action)
+                (:none)
+                  typed/record-op updater @*reel (types/decode-op event) (generate-id!)
+                    :timestamp $ shared/date-now-snapshot
+            , &unit
           :examples $ []
           :schema $ :: 'Fn $ {} (:return 'Unit)
             :args $ [] 'Dynamic
         'main! $ %{} 'CodeEntry (:doc |)
           :code $ quote $ defn main! ()
             println "|Running mode:" $ if config/dev? |dev |release
-            if ssr? $ render-app! realize-ssr!
-            .register-language! (unsafe-coerce hljs 'app.comp.container/HljsHost) |clojure clojure-lang
-            .register-language! (unsafe-coerce hljs 'app.comp.container/HljsHost) |bash bash-lang
+            when (ssr?) (render-app! realize-ssr!)
+            .register-language! (js-cast hljs 'app.comp.container/HljsHost) |clojure clojure-lang
+            .register-language! (js-cast hljs 'app.comp.container/HljsHost) |bash bash-lang
             render-app! render!
-            add-watch *reel :changes $ fn (r p) (render-app! render!)
+            add-watch! *reel :changes $ fn (r p) (render-app! render!)
             listen-devtools! |k dispatch!
-            js/window.addEventListener |beforeunload $ fn (event) (persist-storage!)
-            js/setInterval persist-storage! $ * 1000 60
-            let
-                raw $ js/localStorage.getItem $ :storage-key config/site
-              when (js-present? raw)
+            browser/set-before-unload! $ fn (event) (persist-storage!)
+            browser/set-interval! persist-storage! 60000
+            match
+              browser/storage-get $ :storage-key config/site
+              (:some raw)
                 let
-                    parsed $ parse-cirru-edn $ unsafe-coerce raw String
-                  when (map? parsed)
-                    let
-                        restored $ decode-store $ assert-type parsed (:: 'Map 'Tag 'Dynamic)
-                      when (option:some? restored)
-                        dispatch! $ :: :hydrate-storage $ option:unwrap restored
+                    parsed $ parse-cirru-edn raw
+                  match (decode-store parsed)
+                    (:some store)
+                      dispatch! $ types/Op :hydrate-storage store
+                    (:none) &unit
+              (:none) &unit
             println "|App started."
+            , &unit
           :examples $ []
-          :schema $ :: 'Fn $ {} (:return 'Dynamic)
+          :schema $ :: 'Fn $ {} (:return 'Unit)
             :args $ []
             :features $ #{} :js-ffi
         'mount-target $ %{} 'CodeEntry (:doc |)
-          :code $ quote $ defn mount-target () (js/document.querySelector |.app)
+          :code $ quote $ defn mount-target ()
+            option:unwrap $ dom/query-selector |.app
           :examples $ []
-          :schema $ :: 'Fn $ {} (:return 'Dynamic)
+          :schema $ :: 'Fn $ {} (:return 'respo.dom/DomElement)
             :args $ []
             :features $ #{} :js-ffi
         'persist-storage! $ %{} 'CodeEntry (:doc |)
           :code $ quote $ defn persist-storage! ()
-            js/localStorage.setItem (:storage-key config/site)
-              format-cirru-edn $ reel-schema/read-field @*reel :store
-            , &unit
+            browser/storage-set! (:storage-key config/site)
+              format-cirru-edn $ :store @*reel
           :examples $ []
           :schema $ :: 'Fn $ {} (:return 'Unit)
             :args $ []
             :features $ #{} :js-ffi
         'reload! $ %{} 'CodeEntry (:doc |)
           :code $ quote $ defn reload! () (clear-cache!)
-            reset! *reel $ assert-type (refresh-reel @*reel schema/store updater) (:: 'Map 'Tag 'Dynamic)
+            reset! *reel $ typed/refresh updater @*reel schema/store
             println "|Code updated."
+            , &unit
           :examples $ []
           :schema $ :: 'Fn $ {} (:return 'Unit)
             :args $ []
@@ -182,14 +196,16 @@
           :schema $ :: 'Fn $ {} (:return 'Unit)
             :args $ [] $ :: 'Fn
               {} (:return 'Unit)
-                :args $ [] 'Dynamic 'respo.schema/Component $ :: 'Fn
+                :args $ [] 'respo.dom/DomElement 'respo.schema/Component $ :: 'Fn
                   {} (:return 'Unit)
                     :args $ [] 'Dynamic
         'ssr? $ %{} 'CodeEntry (:doc |)
-          :code $ quote $ def ssr?
-            js-present? $ js/document.querySelector |meta.respo-ssr
+          :code $ quote $ defn ssr? ()
+            option:some? $ dom/query-selector |meta.respo-ssr
           :examples $ []
-          :schema $ :: 'Dynamic
+          :schema $ :: 'Fn $ {} (:return 'Bool)
+            :args $ []
+            :features $ #{} :js-ffi
       :ns $ %{} 'NsEntry (:doc |)
         :code $ quote $ ns app.main
           :require
@@ -198,77 +214,20 @@
             app.updater :refer $ updater
             app.schema :as schema
             reel.util :refer $ listen-devtools!
-            reel.core :refer $ reel-updater refresh-reel
-            reel.schema :as reel-schema
-            cljs.reader :refer $ read-string
             app.config :as config
             |highlight.js :default hljs
             |highlight.js/lib/languages/clojure :default clojure-lang
             |highlight.js/lib/languages/bash :default bash-lang
-    'app.page $ %{} 'FileEntry
-      :defs $ {}
-        'base-info $ %{} 'CodeEntry (:doc |)
-          :code $ quote $ def base-info
-            {}
-              :title $ :title config/site
-              :icon $ :icon config/site
-              :ssr nil
-              :inline-html nil
-          :examples $ []
-          :schema $ :: 'Dynamic
-        'dev-page $ %{} 'CodeEntry (:doc |)
-          :code $ quote $ defn dev-page ()
-            make-page | $ merge base-info $ {}
-              :styles $ [] (<< "|http://~(get-ip!):8100/main.css") |/entry/main.css
-              :scripts $ [] |/client.js
-              :inline-styles $ [] (slurp |entry/github-gist.css)
-                slurp |node_modules/github-markdown-css/github-markdown.css
-          :examples $ []
-          :schema $ :: 'Dynamic
-        'main! $ %{} 'CodeEntry (:doc |)
-          :code $ quote $ defn main! ()
-            println "|Running mode:" $ if config/dev? |dev |release
-            if config/dev?
-              spit |target/index.html $ dev-page
-              spit |dist/index.html $ prod-page
-          :examples $ []
-          :schema $ :: 'Dynamic
-        'prod-page $ %{} 'CodeEntry (:doc |)
-          :code $ quote $ defn prod-page ()
-            let
-                reel $ -> reel-schema/reel (assoc :base schema/store) (assoc :store schema/store)
-                html-content $ make-string $ comp-container reel
-                assets $ read-string $ slurp |dist/assets.edn
-                cdn $ if config/cdn? (:cdn-url config/site) |
-                prefix-cdn $ fn (x) (str cdn x)
-              make-page html-content $ merge base-info $ {}
-                :styles $ [] $ :release-ui config/site
-                :scripts $ map ("#()" -> % :output-name prefix-cdn) assets
-                :ssr |respo-ssr
-                :inline-styles $ [] (slurp |entry/github-gist.css)
-                  slurp |node_modules/github-markdown-css/github-markdown.css
-                  slurp |./entry/main.css
-          :examples $ []
-          :schema $ :: 'Dynamic
-      :ns $ %{} 'NsEntry (:doc |)
-        :code $ quote $ ns app.page
-          :require
-            respo.render.html :refer $ make-string
-            shell-page.core :refer $ make-page spit slurp
-            app.comp.container :refer $ comp-container
-            app.schema :as schema
-            reel.schema :as reel-schema
-            cljs.reader :refer $ read-string
-            app.config :as config
-            cumulo-util.build :refer $ get-ip!
-            clojure.core.strint :refer $ <<
+            reel.typed :as typed
+            app.types :as types
+            js-ffi.browser :as browser
+            js-ffi.shared :as shared
+            respo.ffi.browser :as dom
     'app.schema $ %{} 'FileEntry
       :defs $ {} $ 'store
         %{} 'CodeEntry (:doc |)
           :code $ quote $ def store
-            %{} app.types/Store
-              :states $ {}
-              :content |
+            app.types/Store :states ({}) :content |
           :examples $ []
           :schema $ :: 'app.types/Store
       :ns $ %{} 'NsEntry (:doc |)
@@ -276,6 +235,13 @@
           :require $ app.types :refer $ Store
     'app.types $ %{} 'FileEntry
       :defs $ {}
+        'Op $ %{} 'CodeEntry (:doc |)
+          :code $ quote $ defenum Op
+            :states (:: 'List 'Dynamic) 'Dynamic
+            :content 'String
+            :hydrate-storage 'Store
+          :examples $ []
+          :schema $ :: 'EnumDef
         'SiteConfig $ %{} 'CodeEntry (:doc |)
           :code $ quote $ defstruct SiteConfig (:dev-ui 'String) (:release-ui 'String) (:cdn-url 'String) (:title 'String) (:icon 'String) (:storage-key 'String)
           :examples $ []
@@ -284,6 +250,23 @@
           :code $ quote $ defstruct Store (:states 'Map) (:content 'String)
           :examples $ []
           :schema $ :: 'StructDef
+        'decode-op $ %{} 'CodeEntry (:doc |)
+          :code $ quote $ defn decode-op (op)
+            match op
+              (:states cursor value)
+                if (list? cursor) (Op :states cursor value) (raise "|Expected state cursor List")
+              (:content text)
+                if (string? text) (Op :content text) (raise "|Expected content String")
+              (:hydrate-storage store)
+                if (struct? store)
+                  struct-match store
+                    Store s $ Op :hydrate-storage s
+                    _ _ $ raise "|Expected Store"
+                  raise "|Expected Store"
+              _ $ raise "|Unknown application operation"
+          :examples $ []
+          :schema $ :: 'Fn $ {} (:return 'app.types/Op)
+            :args $ [] 'Enum
       :ns $ %{} 'NsEntry (:doc |)
         :code $ quote $ ns app.types
     'app.updater $ %{} 'FileEntry
@@ -291,13 +274,31 @@
         %{} 'CodeEntry (:doc |)
           :code $ quote $ defn updater (store op op-id op-time)
             match op
-              (:states cursor s) (update-states store cursor s)
+              (:states cursor s)
+                assoc store :states $ decode-map-as
+                  respo.cursor/update-state-tree (:states store) cursor s
+                  , 'Map
               (:content c) (assoc store :content c)
               (:hydrate-storage d) d
               _ $ do (eprintln "|Unknown op:" op) store
           :examples $ []
           :schema $ :: 'Fn $ {} (:return 'app.types/Store)
-            :args $ [] 'app.types/Store 'Dynamic 'Dynamic 'Dynamic
+            :args $ [] 'app.types/Store 'app.types/Op 'String 'Number
+          :tests $ [] $ %{} 'TestEntry (:name |typed-state-and-content)
+            :code $ quote $ let
+                initial $ app.types/Store :states ({}) :content |
+                updated $ updater initial
+                  app.types/Op :states ([] :panel |row 0) false
+                  , |op-1 0
+              assert=
+                {} $ :panel $ {}
+                  |row $ {} $ 0
+                    {} $ :data false
+                :states updated
+              assert= | $ :content updated
+              assert= |typed $ :content $ updater updated (app.types/Op :content |typed) |op-2 1
+              assert= initial $ updater updated (app.types/Op :hydrate-storage initial) |op-3 2
+            :tags $ #{} :unit
       :ns $ %{} 'NsEntry (:doc |)
         :code $ quote $ ns app.updater
           :require $ respo.cursor :refer $ update-states
