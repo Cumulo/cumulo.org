@@ -1,16 +1,21 @@
 
 # Cumulo: a project template for realtime apps
 
-### Usage
+### Calcit projects
+
+For the maintained Calcit template, see [calcium-workflow](https://github.com/Cumulo/calcium-workflow).
+Follow that repository's README and `deps.cirru` for its exact CLI version and separate frontend/server commands;
+upgrading this documentation site does not upgrade or deploy that template or any application server.
+
+### Historical ClojureScript template
+
+The following commands belong to the older Shadow CLJS template, not to Calcit 0.30.1:
 
 ```bash
 git clone git@github.com:Cumulo/cumulo-workflow.git app
 cd app/
 yarn
 yarn watch
-
-# editor
-calcit-editor
 ```
 
 Find out more on https://github.com/Cumulo/
@@ -19,7 +24,8 @@ Find out more on https://github.com/Cumulo/
 
 _TODO_
 
-More: https://github.com/Cumulo/cumulo-workflow.calcit .
+The earlier [cumulo-workflow.calcit](https://github.com/Cumulo/cumulo-workflow.calcit) repository is archived;
+it is a historical reference, not the current template.
 
 ### Syncing
 
