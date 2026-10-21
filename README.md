@@ -14,7 +14,18 @@
 
 Workflow https://github.com/mvc-works/calcit-workflow
 
-### 本轮迁移的使用影响
+### 使用者影响：正式 Calcit 0.30.1 配对
+
+CLI/procs一起升级到正式 **0.30.1**，依赖固定已发布Reel0.6.41、Markdown0.4.59、
+UI0.8.0、Respo0.16.124、JS-FFI0.2.5及传递Router0.8.37。请重新安装整张图、生成JS并刷新，
+不混用旧alpha缓存；UI升级可能有样式差异，不承诺逐像素相同。
+本次将存档恢复移到首次渲染/持久化注册之前；无法解码的存档现在会阻止启动并保留原内容，
+不再默认启动后可能覆盖旧档。不增加自动清空/回退/修复存档功能，具体原因仍会输出。
+首页Markdown、书签、Store/存档格式及key不变，不增加编辑或持久化功能。详见[#45](https://github.com/Cumulo/cumulo.org/issues/45)。
+原all-defs、完整strict、质量基线和附加测试均保留，不新增脚本、concurrently、预算或强转。
+不合并/部署生产或发布tag/npm，也不重启后端；原COS/CDN与前端rsync路径不变。
+
+### 历史：此前已合并的源码迁移
 
 页面仍由 `index.html` / Vite 构建，首页 Markdown 和书签链接不变。
 旧 `app.page` 的 4 个 ClojureScript 页面生成定义及其私有 `cdn?` 已退役：当前入口、
@@ -26,10 +37,8 @@ Store、操作和 Reel 使用真实类型。持久化仍使用 localStorage 的 
 避免把自己保存的 Struct 忽略。无效字段拒绝恢复并输出具体原因。
 页面关闭保存仍是原有机制，不宣称能防止崩溃或配额失败导致的数据丢失。
 
-使用 Calcit / `@calcit/procs` 配对的 **0.30.1-alpha.5**，模块采用精确正式 tag。
-正式 0.30.1 tag 虽存在，原 Publish 仍按上游说明暂停在上传前，等待 #2080 收尾复核；
-暂按[官方发布说明](https://github.com/calcit-lang/calcit/releases/tag/0.30.1)使用 alpha.5，
-不将本轮称为正式 0.30.1 验收，也不在此仓库恢复上游发布。
+上述历史源码迁移使用0.30.1-alpha.5配对；当前工具链已切到本文开头的正式0.30.1图。
+正式图的运行结果以本轮PR为准，旧alpha验收不作为新证明；不在应用仓库改动编译器或上游发布。
 
 Node.js 24 / Yarn 4.18.0：
 
