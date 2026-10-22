@@ -142,14 +142,6 @@
         'main! $ %{} 'CodeEntry (:doc |)
           :code $ quote $ defn main! ()
             println "|Running mode:" $ if config/dev? |dev |release
-            when (ssr?) (render-app! realize-ssr!)
-            .register-language! (js-cast hljs 'app.comp.container/HljsHost) |clojure clojure-lang
-            .register-language! (js-cast hljs 'app.comp.container/HljsHost) |bash bash-lang
-            render-app! render!
-            add-watch! *reel :changes $ fn (r p) (render-app! render!)
-            listen-devtools! |k dispatch!
-            browser/set-before-unload! $ fn (event) (persist-storage!)
-            browser/set-interval! persist-storage! 60000
             match
               browser/storage-get $ :storage-key config/site
               (:some raw)
@@ -158,8 +150,16 @@
                   match (decode-store parsed)
                     (:some store)
                       dispatch! $ types/Op :hydrate-storage store
-                    (:none) &unit
+                    (:none) (raise "|Invalid saved store; original archive preserved")
               (:none) &unit
+            when (ssr?) (render-app! realize-ssr!)
+            .register-language! (js-cast hljs 'app.comp.container/HljsHost) |clojure clojure-lang
+            .register-language! (js-cast hljs 'app.comp.container/HljsHost) |bash bash-lang
+            render-app! render!
+            add-watch! *reel :changes $ fn (r p) (render-app! render!)
+            listen-devtools! |k dispatch!
+            browser/set-before-unload! $ fn (event) (persist-storage!)
+            browser/set-interval! persist-storage! 60000
             println "|App started."
             , &unit
           :examples $ []
