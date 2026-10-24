@@ -33,21 +33,26 @@
                 store $ :store reel
                 states $ :states store
               div
-                {} $ :style $ merge ui/global ui/fullscreen ui/row
+                {} $ :style $ .merge ui/global ui/fullscreen ui/row
                   {} $ :justify-content |center
                 div
-                  {} $ :style $ {} (:max-width 800) (:width |60%)
+                  {} $ :style $ {} (:max-width |800px) (:width |60%)
                     :border $ str "|1px solid " $ hsl 0 0 90
-                    :padding 16
-                    :padding-bottom 200
-                    :overflow :auto
+                    :padding |16px
+                    :padding-bottom |200px
+                    :overflow |auto
                   comp-md-block (slurp |docs/guide.md)
                     {} (:class-name |markdown-body)
                       :highlight $ fn (code lang)
+                        hint-fn $ {} (:return 'String)
+                          :args $ [] 'String 'String
+                          :features $ #{} :js-ffi
                         if
                           and (string? code) (string? lang)
-                          if (= lang |cirru) (color/generate code)
-                            .-value $ .highlight (js-cast hljs 'app.comp.container/HljsHost) code $ js-object (:language lang)
+                          decode-map-as
+                            if (= lang |cirru) (color/generate code)
+                              .-value $ .highlight (js-cast hljs 'app.comp.container/HljsHost) code $ js-object (:language lang)
+                            , 'String
                           raise "|Highlight expects code and language Strings"
                 when dev? $ comp-typed-reel (>> states :reel) reel $ {}
           :examples $ []
@@ -79,7 +84,7 @@
       :defs $ {}
         'dev? $ %{} 'CodeEntry (:doc |)
           :code $ quote $ def dev?
-            = |dev $ option:unwrap-or (get-env |mode) |release
+            = |dev $ .unwrap-or (get-env |mode) |release
           :examples $ []
           :schema $ :: 'Bool
         'site $ %{} 'CodeEntry (:doc |)
@@ -156,9 +161,15 @@
             .register-language! (js-cast hljs 'app.comp.container/HljsHost) |clojure clojure-lang
             .register-language! (js-cast hljs 'app.comp.container/HljsHost) |bash bash-lang
             render-app! render!
-            add-watch! *reel :changes $ fn (r p) (render-app! render!)
+            add-watch! *reel :changes $ fn (r p)
+              hint-fn $ {} (:return 'Unit)
+                :args $ [] (:: 'reel.typed/State 'app.types/Op 'app.types/Store) (:: 'reel.typed/State 'app.types/Op 'app.types/Store)
+              render-app! render!
             listen-devtools! |k dispatch!
-            browser/set-before-unload! $ fn (event) (persist-storage!)
+            browser/set-before-unload! $ fn (event)
+              hint-fn $ {} (:return 'Unit)
+                :args $ [] 'js-ffi.browser/EventHost
+              persist-storage!
             browser/set-interval! persist-storage! 60000
             println "|App started."
             , &unit
@@ -168,7 +179,7 @@
             :features $ #{} :js-ffi
         'mount-target $ %{} 'CodeEntry (:doc |)
           :code $ quote $ defn mount-target ()
-            option:unwrap $ dom/query-selector |.app
+            .unwrap $ dom/query-selector |.app
           :examples $ []
           :schema $ :: 'Fn $ {} (:return 'respo.dom/DomElement)
             :args $ []
@@ -201,7 +212,7 @@
                     :args $ [] 'Dynamic
         'ssr? $ %{} 'CodeEntry (:doc |)
           :code $ quote $ defn ssr? ()
-            option:some? $ dom/query-selector |meta.respo-ssr
+            .some? $ dom/query-selector |meta.respo-ssr
           :examples $ []
           :schema $ :: 'Fn $ {} (:return 'Bool)
             :args $ []
