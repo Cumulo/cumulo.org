@@ -25,7 +25,8 @@ UI 0.8.1、Respo 0.16.126、JS-FFI 0.2.6，传递依赖为已发布的 Router 0.
 首页Markdown、书签、Store/存档格式及key不变，不增加编辑或持久化功能。详见[#45](https://github.com/Cumulo/cumulo.org/issues/45)。
 原all-defs、完整strict、质量基线和附加测试均保留，不新增脚本、concurrently、预算或强转。
 本轮迁移四处旧 Map/Option 调用与四处等价静态 CSS 值，并按真实 Markdown/Ref/EventHost
-生产者补充回调合同；不改变高亮算法、页面 Markdown、公开 schema、存档协议或原测试。
+生产者补充回调合同；JS 高亮结果在本地边界检查为 String，非法结果会更早报错，
+不依靠声明伪装已验证返回值。不改变高亮算法、页面 Markdown、公开 schema、存档协议或原测试。
 原代码没有 HUD 引入，本轮不虚构或移除页面 HUD；现有 main.mjs 热更新回调保持。
 不合并/部署生产或发布tag/npm，也不重启后端；原COS/CDN与前端rsync路径不变。
 
