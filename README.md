@@ -16,14 +16,17 @@ Workflow https://github.com/mvc-works/calcit-workflow
 
 ### 使用者影响：正式 Calcit 0.30.1 配对
 
-CLI/procs 一起升级到正式 **0.30.1**，直接依赖固定为已发布的 Reel 0.6.41、Markdown 0.4.59、
-UI 0.8.0、Respo 0.16.124、JS-FFI 0.2.5，传递依赖为已发布的 Router 0.8.37。请重新安装整张图、生成 JS 并刷新，
+CLI/procs 保持正式 **0.30.1**，直接依赖固定为已发布的 Reel 0.6.42、Markdown 0.4.60、
+UI 0.8.1、Respo 0.16.126、JS-FFI 0.2.6，传递依赖为已发布的 Router 0.8.38，Vite 固定 8.3.3。请重新安装整张图、生成 JS 并刷新，
 不混用旧alpha缓存；UI升级可能有样式差异，不承诺逐像素相同。
-本次将存档恢复移到首次渲染/持久化注册之前；无法解码，或能解析但不符合 Store 类型的存档，
+此前已将存档恢复移到首次渲染/持久化注册之前；无法解码，或能解析但不符合 Store 类型的存档，
 现在均会阻止启动，并保留 localStorage["cumulo.org"] 的原值，
 不再默认启动后可能覆盖旧档。不增加自动清空/回退/修复存档功能，具体原因仍会输出。
 首页Markdown、书签、Store/存档格式及key不变，不增加编辑或持久化功能。详见[#45](https://github.com/Cumulo/cumulo.org/issues/45)。
 原all-defs、完整strict、质量基线和附加测试均保留，不新增脚本、concurrently、预算或强转。
+本轮迁移四处旧 Map/Option 调用与四处等价静态 CSS 值，并按真实 Markdown/Ref/EventHost
+生产者补充回调合同；不改变高亮算法、页面 Markdown、公开 schema、存档协议或原测试。
+原代码没有 HUD 引入，本轮不虚构或移除页面 HUD；现有 main.mjs 热更新回调保持。
 不合并/部署生产或发布tag/npm，也不重启后端；原COS/CDN与前端rsync路径不变。
 
 ### 历史：此前已合并的源码迁移
