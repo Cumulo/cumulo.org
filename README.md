@@ -14,21 +14,20 @@
 
 Workflow https://github.com/mvc-works/calcit-workflow
 
-### 使用者影响：正式 Calcit 0.30.1 配对
+### 使用者影响：Calcit 0.31.0 配对
 
-CLI/procs 保持正式 **0.30.1**，直接依赖固定为已发布的 Reel 0.6.42、Markdown 0.4.60、
-UI 0.8.1、Respo 0.16.126、JS-FFI 0.2.6，传递依赖为已发布的 Router 0.8.38，Vite 固定 8.3.3。请重新安装整张图、生成 JS 并刷新，
-不混用旧alpha缓存；UI升级可能有样式差异，不承诺逐像素相同。
-此前已将存档恢复移到首次渲染/持久化注册之前；无法解码，或能解析但不符合 Store 类型的存档，
-现在均会阻止启动，并保留 localStorage["cumulo.org"] 的原值，
-不再默认启动后可能覆盖旧档。不增加自动清空/回退/修复存档功能，具体原因仍会输出。
-首页Markdown、书签、Store/存档格式及key不变，不增加编辑或持久化功能。详见[#45](https://github.com/Cumulo/cumulo.org/issues/45)。
-原all-defs、完整strict、质量基线和附加测试均保留，不新增脚本、concurrently、预算或强转。
-本轮迁移四处旧 Map/Option 调用与四处等价静态 CSS 值，并按真实 Markdown/Ref/EventHost
-生产者补充回调合同；JS 高亮结果在本地边界检查为 String，非法结果会更早报错，
-不依靠声明伪装已验证返回值。不改变高亮算法、页面 Markdown、公开 schema、存档协议或原测试。
-原代码没有 HUD 引入，本轮不虚构或移除页面 HUD；现有 main.mjs 热更新回调保持。
-不合并/部署生产或发布tag/npm，也不重启后端；原COS/CDN与前端rsync路径不变。
+CLI/procs 升级到正式 **0.31.0**，模块固定到已发布的 Reel 0.7.0-alpha.4、
+Markdown 0.5.0-alpha.4、UI 0.9.0-alpha.4、Respo 0.17.0-alpha.4、JS-FFI 0.2.7，
+传递 Router 0.9.0-alpha.3。UI 图仍含 alpha，请重新安装整张图并完整刷新，样式可能有差异。
+
+补齐 Respo 入口事件合同，保留应用与 Reel 控制事件。修复 0.31 下原存档往返测试失败：
+序列化后的同名 Store 作为数据转 Map，经原字段校验重建本地 Store，名称不代表名义身份。
+首页 Markdown、书签、存档 key/格式、高亮和错误处理保持，仍先恢复成功再注册保存。
+坏存档停止启动并保留原值，详见 [#45](https://github.com/Cumulo/cumulo.org/issues/45)。
+
+原 all-defs、完整 strict、质量基线及两项测试不变；不新增脚本、预算或强转。
+原代码没有 HUD 引入，本次不虚构或移除 HUD，现有 main.mjs 热更新回调保持。
+COS/CDN 与前端 rsync 路径不变，无后端部署。
 
 ### 历史：此前已合并的源码迁移
 
@@ -42,7 +41,7 @@ Store、操作和 Reel 使用真实类型。持久化仍使用 localStorage 的 
 避免把自己保存的 Struct 忽略。无效字段拒绝恢复并输出具体原因。
 页面关闭保存仍是原有机制，不宣称能防止崩溃或配额失败导致的数据丢失。
 
-上述历史源码迁移使用0.30.1-alpha.5配对；当前工具链已切到本文开头的正式0.30.1图。
+上述历史源码迁移使用0.30.1-alpha.5配对；当前工具链与模块图见本文开头。
 正式图的运行结果以本轮PR为准，旧alpha验收不作为新证明；不在应用仓库改动编译器或上游发布。
 
 Node.js 24 / Yarn 4.18.0：

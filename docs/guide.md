@@ -9,7 +9,7 @@ upgrading this documentation site does not upgrade or deploy that template or an
 
 ### Historical ClojureScript template
 
-The following commands belong to the older Shadow CLJS template, not to Calcit 0.30.1:
+The following commands belong to the older Shadow CLJS template, not to the maintained Calcit template:
 
 ```bash
 git clone git@github.com:Cumulo/cumulo-workflow.git app
