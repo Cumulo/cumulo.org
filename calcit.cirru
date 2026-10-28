@@ -6,7 +6,7 @@
     {} (:description |) (:init-fn 'app.main/main!) (:mode :js) (:reload-fn 'app.main/reload!) (:target :browser)
       :feature-policy $ {}
       :modules $ [] |respo.calcit/ |respo-ui.calcit/ |respo-markdown.calcit/ |reel.calcit/ |js-ffi/
-      :type-slots $ {}
+      :type-slots $ {} $ :dispatch-op |app.schema/DispatchOp
   :files $ {}
     'app.comp.container $ %{} 'FileEntry
       :defs $ {}
@@ -106,9 +106,10 @@
           :code $ quote $ defn decode-store (data)
             let
                 fields $ if (struct? data)
-                  struct-match data
-                    app.types/Store store $ &struct:to-map store
-                    _ _ data
+                  if
+                    = (&struct:get-name data) :Store
+                    &struct:to-map data
+                    , data
                   , data
               match (try-decode-map-as fields 'app.types/Store)
                 (:ok store) (Option :some store)
@@ -235,8 +236,12 @@
             js-ffi.shared :as shared
             respo.ffi.browser :as dom
     'app.schema $ %{} 'FileEntry
-      :defs $ {} $ 'store
-        %{} 'CodeEntry (:doc |)
+      :defs $ {}
+        'DispatchOp $ %{} 'CodeEntry (:doc "|Respo 入口事件合同，容纳应用和 Reel 控制事件；代表值不发送。")
+          :code $ quote $ def DispatchOp (:: :unhandled)
+          :examples $ []
+          :schema $ :: 'Enum
+        'store $ %{} 'CodeEntry (:doc |)
           :code $ quote $ def store
             app.types/Store :states ({}) :content |
           :examples $ []
