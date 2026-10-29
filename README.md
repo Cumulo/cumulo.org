@@ -14,13 +14,19 @@
 
 Workflow https://github.com/mvc-works/calcit-workflow
 
-### 使用者影响：Calcit 0.31.0 配对
+### 使用者影响：Calcit 0.32.0 配对
 
-CLI/procs 升级到正式 **0.31.0**，模块固定到已发布的 Reel 0.7.0-alpha.4、
-Markdown 0.5.0-alpha.4、UI 0.9.0-alpha.4、Respo 0.17.0-alpha.4、JS-FFI 0.2.7，
-传递 Router 0.9.0-alpha.3。UI 图仍含 alpha，请重新安装整张图并完整刷新，样式可能有差异。
+本轮候选配对正式 CLI/procs **0.32.0**，依赖目标为 Reel 0.7.0、Markdown 0.5.0、
+UI 0.9.0、Respo 0.17.0、JS FFI 0.2.8，传递 Router 0.9.0。
+Respo 系列以本地候选图联调，正式 tag 发布后还需 Caps 严格安装与远端 CI；
+不将本地联调视为已发布图验收。升级后重新安装整张图并完整刷新。
 
-补齐 Respo 入口事件合同，保留应用与 Reel 控制事件。修复 0.31 下原存档往返测试失败：
+官方 format 迁移 6 处类型表述，22 个定义的 schema 和原两项测试不变。
+全 304 定义、完整 strict（diagnostics 为空）、两项测试、动态方法/废弃调用零上限、
+原质量预算、构建与 immutable 安装通过。隔离页面检查首页 Markdown、高亮、五个链接目标和刷新，浏览器无 warning/error；未访问外链、未复验坏存档或开发 Reel。
+独立只读评审未发现新增问题。未放宽预算、未改工作流、未部署。
+
+此前 0.31.0 已补齐 Respo 入口事件合同，保留应用与 Reel 控制事件。修复 0.31 下原存档往返测试失败：
 序列化后的同名 Store 作为数据转 Map，经原字段校验重建本地 Store，名称不代表名义身份。
 首页 Markdown、书签、存档 key/格式、高亮和错误处理保持，仍先恢复成功再注册保存。
 坏存档停止启动并保留原值，详见 [#45](https://github.com/Cumulo/cumulo.org/issues/45)。
