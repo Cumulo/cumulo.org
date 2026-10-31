@@ -14,46 +14,17 @@
 
 Workflow https://github.com/mvc-works/calcit-workflow
 
-### 使用者影响：Calcit 0.32.0 配对
+### 使用者影响：Calcit 0.32.1
 
-本轮候选配对正式 CLI/procs **0.32.0**，依赖目标为 Reel 0.7.0、Markdown 0.5.0、
-UI 0.9.0、Respo 0.17.0、JS FFI 0.2.8，传递 Router 0.9.0。
-Respo 系列以本地候选图联调，正式 tag 发布后还需 Caps 严格安装与远端 CI；
-不将本地联调视为已发布图验收。升级后重新安装整张图并完整刷新。
+开发与 CI 配对升级为正式 Calcit / procs **0.32.1**，迁移新类型标注语法。直接依赖精确已发布 Reel 0.7.0-alpha.5、Markdown 0.5.0-alpha.5、UI 0.9.0、Respo 0.17.1、JS-FFI 0.2.9；传递 Router 0.9.0-alpha.4。Reel/Markdown/Router 尚无本轮对应正式 tag，不将它们冒称正式版，也不使用 hash 或本地候选代替已发布图。升级后重新严格安装依赖并刷新。
 
-官方 format 迁移 6 处类型表述，22 个定义的 schema 和原两项测试不变。
-全 304 定义、完整 strict（diagnostics 为空）、两项测试、动态方法/废弃调用零上限、
-原质量预算、构建与 immutable 安装通过。隔离页面检查首页 Markdown、高亮、五个链接目标和刷新，浏览器无 warning/error；未访问外链、未复验坏存档或开发 Reel。
-独立只读评审未发现新增问题。未放宽预算、未改工作流、未部署。
+官方格式转换涉及六处旧类型形式，22 个完整项目定义视图与规范化后的原 main 相同，代码、schema 和原两项测试保持。首页 Markdown、书签、高亮、存档 key/格式和原 HMR 不变；原质量预算不放宽。项目版本仍为 0.1.2，本轮不发版、不合并或生产部署。
 
-此前 0.31.0 已补齐 Respo 入口事件合同，保留应用与 Reel 控制事件。修复 0.31 下原存档往返测试失败：
-序列化后的同名 Store 作为数据转 Map，经原字段校验重建本地 Store，名称不代表名义身份。
-首页 Markdown、书签、存档 key/格式、高亮和错误处理保持，仍先恢复成功再注册保存。
-坏存档停止启动并保留原值，详见 [#45](https://github.com/Cumulo/cumulo.org/issues/45)。
+### 开发与门禁
 
-原 all-defs、完整 strict、质量基线及两项测试不变；不新增脚本、预算或强转。
-原代码没有 HUD 引入，本次不虚构或移除 HUD，现有 main.mjs 热更新回调保持。
-COS/CDN 与前端 rsync 路径不变，无后端部署。
-
-### 历史：此前已合并的源码迁移
-
-页面仍由 `index.html` / Vite 构建，首页 Markdown 和书签链接不变。
-旧 `app.page` 的 4 个 ClojureScript 页面生成定义及其私有 `cdn?` 已退役：当前入口、
-脚本和 CI 均未调用它们，也没有可用的 shell-page/strint/cljs.reader 依赖；如有仓库外
-脚本直接调用它们，需要改用 Vite。旧实现可从 Git 历史恢复，不维护第二套页面生成器。
-
-Store、操作和 Reel 使用真实类型。持久化仍使用 localStorage 的 `cumulo.org` 键，
-字段不变；同时接受旧 Map 和序列化后的 Store Struct，检查字段并重建当前名义 Store，
-避免把自己保存的 Struct 忽略。无效字段拒绝恢复并输出具体原因。
-页面关闭保存仍是原有机制，不宣称能防止崩溃或配额失败导致的数据丢失。
-
-上述历史源码迁移使用0.30.1-alpha.5配对；当前工具链与模块图见本文开头。
-正式图的运行结果以本轮PR为准，旧alpha验收不作为新证明；不在应用仓库改动编译器或上游发布。
-
-Node.js 24 / Yarn 4.18.0：
+使用 Node.js 24、Yarn 4.18.0。新解析出的 npm 包版本必须已发布至少 60 分钟，本仓库未配置单包豁免；已有 immutable 锁版本不重新计算等待时间。
 
 ```bash
-corepack enable
 caps --strict --ci
 yarn install --immutable
 caps verify --toolchain
@@ -61,25 +32,22 @@ calcit --check-only --all-defs
 calcit fix --workflow strict --verify --format json
 calcit test --require-match
 yarn build
-# 先编译，再在单独终端运行开发服务；不增加 concurrently。
 yarn dev
 ```
 
-开发页面添加 `?mode=dev`，原 Reel 开关为 Shift+Meta+Alt+K。
-HMR 使用原 `main.mjs` 回调；编译输出 `js-out/` 不提交到仓库。
-两项附加测试覆盖状态/内容/恢复与真实 Store 序列化往返，不新增验证脚本。
+本轮通过 Caps 六模块严格解析、CLI/procs 配对、immutable 安装、canonical、304 项全定义、完整 strict（diagnostics=[]）、原两项测试、动态方法/废弃调用零上限及原质量基线。构建的大 chunk 提示保留，不调高阈值，也不把它视为类型或运行验收通过的替代证据。源码仅维护 calcit.cirru/deps.cirru，禁止 compact/package/js-out 回流。实际隔离首页 Markdown、高亮、五个链接目标和刷新正常，控制台无 warning/error；未访问外链。
+
+### 持久化与已有迁移
+
+仍使用 localStorage 的 `cumulo.org` key。先恢复成功，再注册原 beforeunload 保存；既有字段和 Map 写入形状保持。恢复接受旧 Map 或序列化 Store 的数据，转 Map 经字段校验后重建本地名义 Store，同名不代表可信身份。失败停止启动并保留原值，见 [#45](https://github.com/Cumulo/cumulo.org/issues/45)。本轮未复验隔离坏存档或开发 Reel，不以正常首页验收替代这些测试；原两项原生测试保留。
+
+此前已移除未使用的 ClojureScript app.page 页面生成定义：当前入口、脚本和 CI 使用 Vite；仓库外旧调用需改用 Vite，历史实现仍可从 Git 取回。本轮没有进一步删除这些接口。应用原来没有 HUD 引入，本轮未添加或移除 HUD，原 main.mjs 热更新回调保持。
 
 ### 前端 COS/CDN
 
-CI 构建的 JS/CSS 使用 `https://cos-sh.tiye.me/Cumulo/cumulo.org/` 基址。
-PR 使用包含 PR 号、run 和 attempt 的隔离前缀；只通过 COS action 的
-`public-base-url` 启用内置逐文件校验，不再复制校验脚本。
-同仓 PR 缺少 COS secrets 时明确跳过上传，main 缺少 secrets 则停止部署。
+原工作流不改：CDN 基址 `https://cos-sh.tiye.me/Cumulo/cumulo.org/`，PR 以 PR/run/attempt 隔离。仅上传 dist/，通过 COS action v1.2.0 的 public-base-url 使用内置逐文件校验，不新增 checker。PR 缺 secrets 明确跳过上传，main 缺 secrets 停止部署。
 
-原 rsync 前端路径 `/web-assets/repo/${github.repository}` 不变，无后端部署或路径重构。
-PR 不合并、不触发生产 rsync；只有后续明确合并后的原 main 工作流才部署。
-Action 使用精确正式 tag，接受 tag 可移动的供应链风险，不等同不可变 SHA。
-保留原质量门禁并收紧，未提高预算；构建的大 chunk 提示保留，不调高阈值。
+原前端 rsync 路径 `/web-assets/repo/${github.repository}` 不变，无后端部署。精确正式 Action tag 及已接受的可移动风险保持；本 PR 不授权生产部署。
 
 ### License
 
