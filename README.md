@@ -16,7 +16,7 @@ Workflow https://github.com/mvc-works/calcit-workflow
 
 ### 使用者影响：Calcit 0.32.1
 
-开发与 CI 配对升级为正式 Calcit / procs **0.32.1**，迁移新类型标注语法。直接依赖精确已发布 Reel 0.7.0-alpha.5、Markdown 0.5.0-alpha.5、UI 0.9.0、Respo 0.17.1、JS-FFI 0.2.9；传递 Router 0.9.0-alpha.4。Reel/Markdown/Router 尚无本轮对应正式 tag，不将它们冒称正式版，也不使用 hash 或本地候选代替已发布图。升级后重新严格安装依赖并刷新。
+开发与 CI 配对升级为正式 Calcit / procs **0.32.1**，迁移新类型标注语法。直接依赖精确已发布 Reel 0.7.0、Markdown 0.5.0、UI 0.9.0、Respo 0.17.1、JS-FFI 0.2.9；传递 Router 0.9.0-alpha.4。Reel/Markdown 使用已发布正式 tag；Router 仍保留必要 alpha，不使用 hash 或本地候选代替已发布图。升级后重新严格安装依赖并刷新。
 
 官方格式转换涉及六处旧类型形式，22 个完整项目定义视图与规范化后的原 main 相同，代码、schema 和原两项测试保持。首页 Markdown、书签、高亮、存档 key/格式和原 HMR 不变；原质量预算不放宽。项目版本仍为 0.1.2，本轮不发版、不合并或生产部署。
 
