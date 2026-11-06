@@ -268,6 +268,16 @@
               _ $ raise "|Unknown application operation"
           :examples $ []
           :schema $ quote $ Fn AnyEnum (-> app.types/Op)
+          :tests $ [] $ %{} 'TestEntry (:name |state-cursor-keys)
+            :code $ quote $ let
+                cursor $ [] :panel |row 0
+              assert= (Op :states cursor false)
+                decode-op $ :: :states cursor false
+              assert= true $ try
+                do
+                  decode-op $ :: :states ([] :panel false) nil
+                  , false
+                fn (_error) true
       :ns $ %{} 'NsEntry (:doc |)
         :code $ quote $ ns app.types
     'app.updater $ %{} 'FileEntry
