@@ -17,8 +17,8 @@
           :schema $ quote Trait
         'HljsHost $ %{} 'CodeEntry (:doc |)
           :code $ quote $ deftrait HljsHost
-            .register-language! $ quote $ Fn app.comp.container/HljsHost String Dynamic (-> Unit)
-            .highlight $ quote $ Fn app.comp.container/HljsHost String JsObject (-> app.comp.container/HighlightResultHost)
+            .register-language! $ Fn app.comp.container/HljsHost String Dynamic $ -> Unit
+            .highlight $ Fn app.comp.container/HljsHost String JsObject $ -> app.comp.container/HighlightResultHost
           :examples $ []
           :ffi $ {} (:backend :js) (:kind :external-object)
             :names $ {} $ :register-language! |registerLanguage
@@ -48,7 +48,9 @@
                               .-value $ .highlight (js-cast hljs 'app.comp.container/HljsHost) code $ js-object (:language lang)
                             , 'String
                           raise "|Highlight expects code and language Strings"
-                when dev? $ comp-typed-reel (>> states :reel) reel $ {}
+                if dev?
+                  Option :some $ comp-typed-reel (>> states :reel) reel $ {}
+                  Option :none
           :examples $ []
           :schema $ quote $ Fn (reel.typed/State app.types/Op app.types/Store) (-> respo.schema/Component) (:features :js-ffi)
         'slurp $ %{} 'CodeEntry (:doc |)
@@ -133,7 +135,7 @@
                     :timestamp $ shared/date-now-snapshot
             , &unit
           :examples $ []
-          :schema $ quote $ Fn Dynamic (-> Unit)
+          :schema $ quote $ Fn AnyEnum (-> Unit)
         'main! $ %{} 'CodeEntry (:doc |)
           :code $ quote $ defn main! ()
             println "|Running mode:" $ if config/dev? |dev |release
@@ -183,7 +185,10 @@
           :schema $ quote $ Fn (-> Unit)
         'render-app! $ %{} 'CodeEntry (:doc |)
           :code $ quote $ defn render-app! (renderer)
-            renderer (mount-target) (comp-container @*reel) dispatch!
+            renderer (mount-target) (comp-container @*reel)
+              fn (op)
+                hint-fn $ Fn Dynamic $ -> Unit
+                if (enum? op) (dispatch! op) (raise "|Expected operation Enum")
           :examples $ []
           :schema $ quote $ Fn
             Fn respo.dom/DomElement respo.schema/Component
@@ -217,7 +222,7 @@
         'DispatchOp $ %{} 'CodeEntry (:doc "|Respo 入口事件合同，容纳应用和 Reel 控制事件；代表值不发送。")
           :code $ quote $ def DispatchOp (:: :unhandled)
           :examples $ []
-          :schema $ quote Enum
+          :schema $ quote AnyEnum
         'store $ %{} 'CodeEntry (:doc |)
           :code $ quote $ def store
             app.types/Store :states ({}) :content |
@@ -230,26 +235,28 @@
       :defs $ {}
         'Op $ %{} 'CodeEntry (:doc |)
           :code $ quote $ defenum Op
-            :states
-              quote $ List Dynamic
-              , 'Dynamic
-            :content 'String
-            :hydrate-storage 'Store
+            :states (List respo.schema/CoordKey) Dynamic
+            :content String
+            :hydrate-storage Store
           :examples $ []
           :schema $ quote EnumDef
         'SiteConfig $ %{} 'CodeEntry (:doc |)
-          :code $ quote $ defstruct SiteConfig (:dev-ui 'String) (:release-ui 'String) (:cdn-url 'String) (:title 'String) (:icon 'String) (:storage-key 'String)
+          :code $ quote $ defstruct SiteConfig (:dev-ui String) (:release-ui String) (:cdn-url String) (:title String) (:icon String) (:storage-key String)
           :examples $ []
           :schema $ quote StructDef
         'Store $ %{} 'CodeEntry (:doc |)
-          :code $ quote $ defstruct Store (:states 'Map) (:content 'String)
+          :code $ quote $ defstruct Store (:states Map) (:content String)
           :examples $ []
           :schema $ quote StructDef
         'decode-op $ %{} 'CodeEntry (:doc |)
           :code $ quote $ defn decode-op (op)
             match op
               (:states cursor value)
-                if (list? cursor) (Op :states cursor value) (raise "|Expected state cursor List")
+                if (list? cursor)
+                  Op :states
+                    decode-map-as cursor $ List respo.schema/CoordKey
+                    , value
+                  raise "|Expected state cursor List"
               (:content text)
                 if (string? text) (Op :content text) (raise "|Expected content String")
               (:hydrate-storage store)
@@ -260,7 +267,7 @@
                   raise "|Expected Store"
               _ $ raise "|Unknown application operation"
           :examples $ []
-          :schema $ quote $ Fn Enum (-> app.types/Op)
+          :schema $ quote $ Fn AnyEnum (-> app.types/Op)
       :ns $ %{} 'NsEntry (:doc |)
         :code $ quote $ ns app.types
     'app.updater $ %{} 'FileEntry
