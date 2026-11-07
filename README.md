@@ -16,7 +16,7 @@ Workflow https://github.com/mvc-works/calcit-workflow
 
 ### 使用者影响
 
-本地和 CI 使用正式 Calcit 与 `@calcit/procs` **0.35.1**。升级后重新安装依赖并构建前端。首页指南、书签和存档格式继续沿用，开发面板用 `Option` 表达显隐，状态游标使用 `CoordKey`。
+本地和 CI 使用正式 Calcit 与 `@calcit/procs` **0.37.0**。升级后重新安装依赖并构建前端。首页指南、书签和存档格式继续沿用，开发面板用 `Option` 表达显隐，状态游标使用 `CoordKey`。 事件在进入状态派发前解码为 `Op | reel.typed/Control`，DOM 与 SSR 渲染器都使用同一个 Enum 入口。
 
 ### 0.32.1 迁移记录
 
@@ -39,11 +39,11 @@ yarn build
 yarn dev
 ```
 
-本轮通过 Caps 六模块严格解析、CLI/procs 配对、immutable 安装、canonical、304 项全定义、完整 strict（diagnostics=[]）、原两项测试、动态方法/废弃调用零上限及原质量基线。构建的大 chunk 提示保留，不调高阈值，也不把它视为类型或运行验收通过的替代证据。源码仅维护 calcit.cirru/deps.cirru，禁止 compact/package/js-out 回流。实际隔离首页 Markdown、高亮、五个链接目标和刷新正常，控制台无 warning/error；未访问外链。
+CI 执行 Caps 六模块严格解析、CLI/procs 配对、immutable 安装、规范格式、全部定义、完整 strict、原三项测试、动态方法与废弃调用零上限及质量基线。构建的大 chunk 提示保留，不调高阈值，也不把它视为类型或运行验收通过的替代证据。源码仅维护 calcit.cirru/deps.cirru，禁止 compact/package/js-out 回流。实际隔离首页 Markdown、高亮、五个链接目标和刷新正常，控制台无 warning/error；未访问外链。
 
 ### 持久化与已有迁移
 
-仍使用 localStorage 的 `cumulo.org` key。先恢复成功，再注册原 beforeunload 保存；既有字段和 Map 写入形状保持。恢复接受旧 Map 或序列化 Store 的数据，转 Map 经字段校验后重建本地名义 Store，同名不代表可信身份。失败停止启动并保留原值，见 [#45](https://github.com/Cumulo/cumulo.org/issues/45)。本轮未复验隔离坏存档或开发 Reel，不以正常首页验收替代这些测试；原两项原生测试保留。
+仍使用 localStorage 的 `cumulo.org` key。先恢复成功，再注册原 beforeunload 保存；既有字段和 Map 写入形状保持。恢复接受旧 Map 或序列化 Store 的数据，转 Map 经字段校验后重建本地名义 Store，同名不代表可信身份。失败停止启动并保留原值，见 [#45](https://github.com/Cumulo/cumulo.org/issues/45)。本轮未复验隔离坏存档或开发 Reel，不以正常首页验收替代这些测试；原三项原生测试保留。
 
 此前已移除未使用的 ClojureScript app.page 页面生成定义：当前入口、脚本和 CI 使用 Vite；仓库外旧调用需改用 Vite，历史实现仍可从 Git 取回。本轮没有进一步删除这些接口。应用原来没有 HUD 引入，本轮未添加或移除 HUD，原 main.mjs 热更新回调保持。
 

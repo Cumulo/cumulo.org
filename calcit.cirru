@@ -6,7 +6,7 @@
     {} (:description |) (:init-fn 'app.main/main!) (:mode :js) (:reload-fn 'app.main/reload!) (:target :browser)
       :feature-policy $ {}
       :modules $ [] |respo.calcit/ |respo-ui.calcit/ |respo-markdown.calcit/ |reel.calcit/ |js-ffi/
-      :type-slots $ {} $ :dispatch-op |app.schema/DispatchOp
+      :type-slots $ {} $ :dispatch-op 'app.schema/DispatchOp
   :files $ {}
     'app.comp.container $ %{} 'FileEntry
       :defs $ {}
@@ -127,15 +127,23 @@
           :code $ quote $ defn dispatch! (op)
             let
                 event $ if (enum? op) op $ raise "|Expected operation Enum"
-                control $ typed/decode-control event
-              reset! *reel $ match control
-                (:some action) (typed/apply-control updater @*reel action)
+              match (typed/decode-control event)
+                (:some control) (dispatch-resolved! control)
                 (:none)
-                  typed/record-op updater @*reel (types/decode-op event) (generate-id!)
-                    :timestamp $ shared/date-now-snapshot
+                  dispatch-resolved! $ types/decode-op event
             , &unit
           :examples $ []
           :schema $ quote $ Fn AnyEnum (-> Unit)
+        'dispatch-resolved! $ %{} 'CodeEntry (:doc |)
+          :code $ quote $ defn dispatch-resolved! (op)
+            hint-fn $ Fn app.types/ResolvedOp $ -> Unit
+            reset! *reel $ match op
+              (reel.typed/Control control) (typed/apply-control updater @*reel control)
+              (app.types/Op action)
+                typed/record-op updater @*reel action (generate-id!)
+                  :timestamp $ shared/date-now-snapshot
+            , &unit
+          :examples $ []
         'main! $ %{} 'CodeEntry (:doc |)
           :code $ quote $ defn main! ()
             println "|Running mode:" $ if config/dev? |dev |release
@@ -185,14 +193,11 @@
           :schema $ quote $ Fn (-> Unit)
         'render-app! $ %{} 'CodeEntry (:doc |)
           :code $ quote $ defn render-app! (renderer)
-            renderer (mount-target) (comp-container @*reel)
-              fn (op)
-                hint-fn $ Fn Dynamic $ -> Unit
-                if (enum? op) (dispatch! op) (raise "|Expected operation Enum")
+            renderer (mount-target) (comp-container @*reel) dispatch!
           :examples $ []
           :schema $ quote $ Fn
             Fn respo.dom/DomElement respo.schema/Component
-              Fn Dynamic $ -> Unit
+              Fn AnyEnum $ -> Unit
               -> Unit
             -> Unit
         'ssr? $ %{} 'CodeEntry (:doc |)
@@ -240,6 +245,10 @@
             :hydrate-storage Store
           :examples $ []
           :schema $ quote EnumDef
+        'ResolvedOp $ %{} 'CodeEntry (:doc |)
+          :code $ quote $ defunion ResolvedOp Op reel.typed/Control
+          :examples $ []
+          :schema $ quote UnionDef
         'SiteConfig $ %{} 'CodeEntry (:doc |)
           :code $ quote $ defstruct SiteConfig (:dev-ui String) (:release-ui String) (:cdn-url String) (:title String) (:icon String) (:storage-key String)
           :examples $ []
