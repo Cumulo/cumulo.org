@@ -16,7 +16,7 @@ Workflow https://github.com/mvc-works/calcit-workflow
 
 ### 使用者影响
 
-本地和 CI 使用正式 Calcit 与 `@calcit/procs` **0.37.0**。升级后重新安装依赖并构建前端。首页指南、书签和存档格式继续沿用，开发面板用 `Option` 表达显隐，状态游标使用 `CoordKey`。 事件在进入状态派发前解码为 `Op | reel.typed/Control`，DOM 与 SSR 渲染器都使用同一个 Enum 入口。
+本地和 CI 使用正式 Calcit 与 `@calcit/procs` **0.38.0**、Reel **0.11.0**。升级后重新安装依赖并构建前端。首页指南、书签和存档格式继续沿用。页面操作直接派发具名 `Op`，开发面板和快捷键通过独立回调传递 `reel.typed/Control`，两路在更新入口通过 union 汇合。DOM 渲染和 SSR 接管共用受管理的渲染帧。
 
 ### 0.32.1 迁移记录
 

@@ -6,7 +6,7 @@
     {} (:description |) (:init-fn 'app.main/main!) (:mode :js) (:reload-fn 'app.main/reload!) (:target :browser)
       :feature-policy $ {}
       :modules $ [] |respo.calcit/ |respo-ui.calcit/ |respo-markdown.calcit/ |reel.calcit/ |js-ffi/
-      :type-slots $ {} $ :dispatch-op 'app.schema/DispatchOp
+      :type-slots $ {} $ :dispatch-op 'app.types/Op
   :files $ {}
     'app.comp.container $ %{} 'FileEntry
       :defs $ {}
@@ -24,7 +24,7 @@
             :names $ {} $ :register-language! |registerLanguage
           :schema $ quote Trait
         'comp-container $ %{} 'CodeEntry (:doc |)
-          :code $ quote $ defcomp comp-container (reel)
+          :code $ quote $ defcomp comp-container (reel on-control!)
             let
                 store $ :store reel
                 states $ :states store
@@ -49,10 +49,13 @@
                             , 'String
                           raise "|Highlight expects code and language Strings"
                 if dev?
-                  Option :some $ comp-typed-reel (>> states :reel) reel $ {}
+                  Option :some $ comp-typed-reel (>> states :reel) reel ({}) on-control!
                   Option :none
           :examples $ []
-          :schema $ quote $ Fn (reel.typed/State app.types/Op app.types/Store) (-> respo.schema/Component) (:features :js-ffi)
+          :schema $ quote $ Fn (reel.typed/State app.types/Op app.types/Store)
+            Fn reel.typed/Control $ -> Unit
+            -> respo.schema/Component
+            :features :js-ffi
         'slurp $ %{} 'CodeEntry (:doc |)
           :code $ quote $ defmacro slurp (path)
             read-file $ str path
@@ -124,16 +127,9 @@
                   :content false
             :tags $ #{} :unit
         'dispatch! $ %{} 'CodeEntry (:doc |)
-          :code $ quote $ defn dispatch! (op)
-            let
-                event $ if (enum? op) op $ raise "|Expected operation Enum"
-              match (typed/decode-control event)
-                (:some control) (dispatch-resolved! control)
-                (:none)
-                  dispatch-resolved! $ types/decode-op event
-            , &unit
+          :code $ quote $ defn dispatch! (op) (dispatch-resolved! op)
           :examples $ []
-          :schema $ quote $ Fn AnyEnum (-> Unit)
+          :schema $ quote $ Fn app.types/Op (-> Unit)
         'dispatch-resolved! $ %{} 'CodeEntry (:doc |)
           :code $ quote $ defn dispatch-resolved! (op)
             hint-fn $ Fn app.types/ResolvedOp $ -> Unit
@@ -164,7 +160,7 @@
             add-watch! *reel :changes $ fn (r p)
               hint-fn $ Fn (reel.typed/State app.types/Op app.types/Store) (reel.typed/State app.types/Op app.types/Store) (-> Unit)
               render-app! render!
-            listen-devtools! |k dispatch!
+            listen-devtools! |k on-control!
             browser/set-before-unload! $ fn (event)
               hint-fn $ Fn js-ffi.browser/EventHost $ -> Unit
               persist-storage!
@@ -178,6 +174,10 @@
             .unwrap $ dom/query-selector |.app
           :examples $ []
           :schema $ quote $ Fn (-> respo.dom/DomElement) (:features :js-ffi)
+        'on-control! $ %{} 'CodeEntry (:doc |)
+          :code $ quote $ defn on-control! (control) (dispatch-resolved! control)
+          :examples $ []
+          :schema $ quote $ Fn reel.typed/Control (-> Unit)
         'persist-storage! $ %{} 'CodeEntry (:doc |)
           :code $ quote $ defn persist-storage! ()
             browser/storage-set! (:storage-key config/site)
@@ -193,13 +193,14 @@
           :schema $ quote $ Fn (-> Unit)
         'render-app! $ %{} 'CodeEntry (:doc |)
           :code $ quote $ defn render-app! (renderer)
-            renderer (mount-target) (comp-container @*reel) dispatch!
+            with-memo-frame $ fn () $ renderer (mount-target) (comp-container @*reel on-control!) dispatch!
           :examples $ []
           :schema $ quote $ Fn
             Fn respo.dom/DomElement respo.schema/Component
-              Fn AnyEnum $ -> Unit
+              Fn app.types/Op $ -> Unit
               -> Unit
             -> Unit
+            :features :js-ffi
         'ssr? $ %{} 'CodeEntry (:doc |)
           :code $ quote $ defn ssr? ()
             .some? $ dom/query-selector |meta.respo-ssr
@@ -222,13 +223,10 @@
             js-ffi.browser :as browser
             js-ffi.shared :as shared
             respo.ffi.browser :as dom
+            respo.memo :refer $ with-memo-frame
     'app.schema $ %{} 'FileEntry
-      :defs $ {}
-        'DispatchOp $ %{} 'CodeEntry (:doc "|Respo 入口事件合同，容纳应用和 Reel 控制事件；代表值不发送。")
-          :code $ quote $ def DispatchOp (:: :unhandled)
-          :examples $ []
-          :schema $ quote AnyEnum
-        'store $ %{} 'CodeEntry (:doc |)
+      :defs $ {} $ 'store
+        %{} 'CodeEntry (:doc |)
           :code $ quote $ def store
             app.types/Store :states ({}) :content |
           :examples $ []
@@ -257,36 +255,6 @@
           :code $ quote $ defstruct Store (:states Map) (:content String)
           :examples $ []
           :schema $ quote StructDef
-        'decode-op $ %{} 'CodeEntry (:doc |)
-          :code $ quote $ defn decode-op (op)
-            match op
-              (:states cursor value)
-                if (list? cursor)
-                  Op :states
-                    decode-map-as cursor $ List respo.schema/CoordKey
-                    , value
-                  raise "|Expected state cursor List"
-              (:content text)
-                if (string? text) (Op :content text) (raise "|Expected content String")
-              (:hydrate-storage store)
-                if (struct? store)
-                  struct-match store
-                    Store s $ Op :hydrate-storage s
-                    _ _ $ raise "|Expected Store"
-                  raise "|Expected Store"
-              _ $ raise "|Unknown application operation"
-          :examples $ []
-          :schema $ quote $ Fn AnyEnum (-> app.types/Op)
-          :tests $ [] $ %{} 'TestEntry (:name |state-cursor-keys)
-            :code $ quote $ let
-                cursor $ [] :panel |row 0
-              assert= (Op :states cursor false)
-                decode-op $ :: :states cursor false
-              assert= true $ try
-                do
-                  decode-op $ :: :states ([] :panel false) nil
-                  , false
-                fn (_error) true
       :ns $ %{} 'NsEntry (:doc |)
         :code $ quote $ ns app.types
     'app.updater $ %{} 'FileEntry
