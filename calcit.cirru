@@ -17,11 +17,18 @@
           :schema $ quote Trait
         'HljsHost $ %{} 'CodeEntry (:doc |)
           :code $ quote $ deftrait HljsHost
-            .register-language! $ Fn app.comp.container/HljsHost String Dynamic $ -> Unit
+            .register-language! $ Fn app.comp.container/HljsHost String
+              Fn app.comp.container/HljsHost $ -> app.comp.container/LanguageDefinition
+              -> Unit
             .highlight $ Fn app.comp.container/HljsHost String JsObject $ -> app.comp.container/HighlightResultHost
           :examples $ []
           :ffi $ {} (:backend :js) (:kind :external-object)
             :names $ {} $ :register-language! |registerLanguage
+          :schema $ quote Trait
+        'LanguageDefinition $ %{} 'CodeEntry (:doc |)
+          :code $ quote $ deftrait LanguageDefinition (:name String)
+          :examples $ []
+          :ffi $ {} (:backend :js) (:kind :external-object) (:target :browser)
           :schema $ quote Trait
         'comp-container $ %{} 'CodeEntry (:doc |)
           :code $ quote $ defcomp comp-container (reel on-control!)
@@ -154,8 +161,20 @@
                     (:none) (raise "|Invalid saved store; original archive preserved")
               (:none) &unit
             when (ssr?) (render-app! realize-ssr!)
-            .register-language! (js-cast hljs 'app.comp.container/HljsHost) |clojure clojure-lang
-            .register-language! (js-cast hljs 'app.comp.container/HljsHost) |bash bash-lang
+            .register-language! (js-cast hljs 'app.comp.container/HljsHost) |clojure $ fn (api)
+              hint-fn $ Fn app.comp.container/HljsHost (-> app.comp.container/LanguageDefinition) (:features :js-ffi)
+              let
+                  factory clojure-lang
+                if (fn? factory)
+                  js-cast (factory api) 'app.comp.container/LanguageDefinition
+                  raise "|Expected a Highlight.js clojure language factory"
+            .register-language! (js-cast hljs 'app.comp.container/HljsHost) |bash $ fn (api)
+              hint-fn $ Fn app.comp.container/HljsHost (-> app.comp.container/LanguageDefinition) (:features :js-ffi)
+              let
+                  factory bash-lang
+                if (fn? factory)
+                  js-cast (factory api) 'app.comp.container/LanguageDefinition
+                  raise "|Expected a Highlight.js bash language factory"
             render-app! render!
             add-watch! *reel :changes $ fn (r p)
               hint-fn $ Fn (reel.typed/State app.types/Op app.types/Store) (reel.typed/State app.types/Op app.types/Store) (-> Unit)
