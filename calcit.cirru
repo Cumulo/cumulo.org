@@ -56,8 +56,8 @@
                             , 'String
                           raise "|Highlight expects code and language Strings"
                 if dev?
-                  Option :some $ comp-typed-reel (>> states :reel) reel ({}) on-control!
-                  Option :none
+                  Some $ comp-typed-reel (>> states :reel) reel ({}) on-control!
+                  , None
           :examples $ []
           :schema $ quote $ Fn (reel.typed/State app.types/Op app.types/Store)
             Fn reel.typed/Control $ -> Unit
@@ -94,7 +94,7 @@
           :code $ quote $ def site
             app.types/SiteConfig :dev-ui |http://localhost:8100/main-fonts.css :release-ui |http://cdn.tiye.me/favored-fonts/main-fonts.css :cdn-url |http://cdn.tiye.me/cumulo-org/ :title "|Cumulo Home Page" :icon |http://cdn.tiye.me/logo/respo.png :storage-key |cumulo.org
           :examples $ []
-          :schema $ quote app.types/SiteConfig
+          :schema $ quote SiteConfig
       :ns $ %{} 'NsEntry (:doc |)
         :code $ quote $ ns app.config
           :require $ app.types :refer $ SiteConfig
@@ -103,7 +103,7 @@
         '*reel $ %{} 'CodeEntry (:doc |)
           :code $ quote $ defref *reel (typed/new-reel schema/store)
           :examples $ []
-          :schema $ quote $ Ref (reel.typed/State app.types/Op app.types/Store)
+          :schema $ quote $ Ref (typed/State types/Op types/Store)
         'decode-store $ %{} 'CodeEntry
           :doc "|Validates open persisted data before it enters the typed application store."
           :code $ quote $ defn decode-store (data)
@@ -115,28 +115,27 @@
                     , data
                   , data
               match (try-decode-map-as fields 'app.types/Store)
-                (:ok store) (Option :some store)
+                (:ok store) (Some store)
                 (:err message)
-                  do (eprintln "|Invalid saved store:" message) (Option :none)
+                  do (eprintln "|Invalid saved store:" message) None
           :examples $ []
           :schema $ quote $ Fn Dynamic
-            -> $ Option app.types/Store
+            -> $ Option types/Store
           :tests $ [] $ %{} 'TestEntry (:name |persisted-store-roundtrip)
             :code $ quote $ let
                 stored $ app.types/Store :states
                   {} $ :flag false
                   , :content |hello
                 raw $ parse-cirru-edn $ format-cirru-edn stored
-              assert= (Option :some stored) (decode-store raw)
-              assert= (Option :none)
-                decode-store $ {}
-                  :states $ {}
-                  :content false
+              assert= (Some stored) (decode-store raw)
+              assert= None $ decode-store $ {}
+                :states $ {}
+                :content false
             :tags $ #{} :unit
         'dispatch! $ %{} 'CodeEntry (:doc |)
           :code $ quote $ defn dispatch! (op) (dispatch-resolved! op)
           :examples $ []
-          :schema $ quote $ Fn app.types/Op (-> Unit)
+          :schema $ quote $ Fn types/Op (-> Unit)
         'dispatch-resolved! $ %{} 'CodeEntry (:doc |)
           :code $ quote $ defn dispatch-resolved! (op)
             hint-fn $ Fn app.types/ResolvedOp $ -> Unit
@@ -196,7 +195,7 @@
         'on-control! $ %{} 'CodeEntry (:doc |)
           :code $ quote $ defn on-control! (control) (dispatch-resolved! control)
           :examples $ []
-          :schema $ quote $ Fn reel.typed/Control (-> Unit)
+          :schema $ quote $ Fn typed/Control (-> Unit)
         'persist-storage! $ %{} 'CodeEntry (:doc |)
           :code $ quote $ defn persist-storage! ()
             browser/storage-set! (:storage-key config/site)
@@ -216,7 +215,7 @@
           :examples $ []
           :schema $ quote $ Fn
             Fn respo.dom/DomElement respo.schema/Component
-              Fn app.types/Op $ -> Unit
+              Fn types/Op $ -> Unit
               -> Unit
             -> Unit
             :features :js-ffi
@@ -249,7 +248,7 @@
           :code $ quote $ def store
             app.types/Store :states ({}) :content |
           :examples $ []
-          :schema $ quote app.types/Store
+          :schema $ quote Store
       :ns $ %{} 'NsEntry (:doc |)
         :code $ quote $ ns app.schema
           :require $ app.types :refer $ Store

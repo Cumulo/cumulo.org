@@ -54,7 +54,7 @@ jobs:
         calcit calcit.cirru fix --workflow strict --verify --format json | jq -e '.data.workflow.status == "passed" and .diagnostics == []'
         calcit calcit.cirru analyze weak-types --only dynamic-method --summary-only --format json | jq -e '.data.summary.findings == 0'
         calcit calcit.cirru analyze weak-types --only deprecated-call --summary-only --format json | jq -e '.data.summary.calls == 0'
-        calcit calcit.cirru analyze quality --baseline config/calcit-quality.cirru
+        bash scripts/check-types.sh
         calcit calcit.cirru test --require-match
         calcit calcit.cirru js
 
