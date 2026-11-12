@@ -122,6 +122,7 @@
           :schema $ quote $ Fn Dynamic
             -> $ Option types/Store
             :features :io
+            :open :decode
           :tests $ [] $ %{} 'TestEntry (:name |persisted-store-roundtrip)
             :code $ quote $ let
                 stored $ app.types/Store :states
