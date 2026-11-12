@@ -121,6 +121,7 @@
           :examples $ []
           :schema $ quote $ Fn Dynamic
             -> $ Option types/Store
+            :features :io
           :tests $ [] $ %{} 'TestEntry (:name |persisted-store-roundtrip)
             :code $ quote $ let
                 stored $ app.types/Store :states
@@ -186,7 +187,7 @@
             println "|App started."
             , &unit
           :examples $ []
-          :schema $ quote $ Fn (-> Unit) (:features :js-ffi)
+          :schema $ quote $ Fn (-> Unit) (:features :io :js-ffi :state)
         'mount-target $ %{} 'CodeEntry (:doc |)
           :code $ quote $ defn mount-target ()
             .unwrap $ dom/query-selector |.app
@@ -201,14 +202,14 @@
             browser/storage-set! (:storage-key config/site)
               format-cirru-edn $ :store @*reel
           :examples $ []
-          :schema $ quote $ Fn (-> Unit) (:features :js-ffi)
+          :schema $ quote $ Fn (-> Unit) (:features :js-ffi :state)
         'reload! $ %{} 'CodeEntry (:doc |)
           :code $ quote $ defn reload! () (clear-cache!)
             reset! *reel $ typed/refresh updater @*reel schema/store
             println "|Code updated."
             , &unit
           :examples $ []
-          :schema $ quote $ Fn (-> Unit)
+          :schema $ quote $ Fn (-> Unit) (:features :io :state)
         'render-app! $ %{} 'CodeEntry (:doc |)
           :code $ quote $ defn render-app! (renderer)
             with-memo-frame $ fn () $ renderer (mount-target) (comp-container @*reel on-control!) dispatch!
@@ -218,7 +219,7 @@
               Fn types/Op $ -> Unit
               -> Unit
             -> Unit
-            :features :js-ffi
+            :features :js-ffi :state
         'ssr? $ %{} 'CodeEntry (:doc |)
           :code $ quote $ defn ssr? ()
             .some? $ dom/query-selector |meta.respo-ssr
@@ -256,7 +257,7 @@
       :defs $ {}
         'Op $ %{} 'CodeEntry (:doc |)
           :code $ quote $ defenum Op
-            :states (List respo.schema/CoordKey) Dynamic
+            :states (List respo.schema/CoordKey) StateValue
             :content String
             :hydrate-storage Store
           :examples $ []
@@ -269,8 +270,14 @@
           :code $ quote $ defstruct SiteConfig (:dev-ui String) (:release-ui String) (:cdn-url String) (:title String) (:icon String) (:storage-key String)
           :examples $ []
           :schema $ quote StructDef
+        'StateValue $ %{} 'CodeEntry (:doc |)
+          :code $ quote $ defunion StateValue Bool Number String Tag (List StateValue) (Map respo.schema/CoordKey StateValue)
+          :examples $ []
+          :schema $ quote UnionDef
         'Store $ %{} 'CodeEntry (:doc |)
-          :code $ quote $ defstruct Store (:states Map) (:content String)
+          :code $ quote $ defstruct Store
+            :states $ Map respo.schema/CoordKey StateValue
+            :content String
           :examples $ []
           :schema $ quote StructDef
       :ns $ %{} 'NsEntry (:doc |)
@@ -283,12 +290,12 @@
               (:states cursor s)
                 assoc store :states $ decode-map-as
                   respo.cursor/update-state-tree (:states store) cursor s
-                  , 'Map
+                  Map respo.schema/CoordKey app.types/StateValue
               (:content c) (assoc store :content c)
               (:hydrate-storage d) d
               _ $ do (eprintln "|Unknown op:" op) store
           :examples $ []
-          :schema $ quote $ Fn app.types/Store app.types/Op String Number (-> app.types/Store)
+          :schema $ quote $ Fn app.types/Store app.types/Op String Number (-> app.types/Store) (:features :io)
           :tests $ [] $ %{} 'TestEntry (:name |typed-state-and-content)
             :code $ quote $ let
                 initial $ app.types/Store :states ({}) :content |
