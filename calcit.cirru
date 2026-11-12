@@ -138,7 +138,7 @@
           :schema $ quote $ Fn types/Op (-> Unit)
         'dispatch-resolved! $ %{} 'CodeEntry (:doc |)
           :code $ quote $ defn dispatch-resolved! (op)
-            hint-fn $ Fn app.types/ResolvedOp $ -> Unit
+            hint-fn $ Fn types/ResolvedOp $ -> Unit
             reset! *reel $ match op
               (reel.typed/Control control) (typed/apply-control updater @*reel control)
               (app.types/Op action)
@@ -176,11 +176,11 @@
                   raise "|Expected a Highlight.js bash language factory"
             render-app! render!
             add-watch! *reel :changes $ fn (r p)
-              hint-fn $ Fn (reel.typed/State app.types/Op app.types/Store) (reel.typed/State app.types/Op app.types/Store) (-> Unit)
+              hint-fn $ Fn (typed/State types/Op types/Store) (typed/State types/Op types/Store) (-> Unit)
               render-app! render!
             listen-devtools! |k on-control!
             browser/set-before-unload! $ fn (event)
-              hint-fn $ Fn js-ffi.browser/EventHost $ -> Unit
+              hint-fn $ Fn browser/EventHost $ -> Unit
               persist-storage!
             browser/set-interval! persist-storage! 60000
             println "|App started."
