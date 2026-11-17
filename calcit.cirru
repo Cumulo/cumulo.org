@@ -60,9 +60,9 @@
                   , None
           :examples $ []
           :schema $ quote $ Fn (reel.typed/State app.types/Op app.types/Store)
-            Fn reel.typed/Control $ -> Unit
+            Fn reel.typed/Control (-> Unit) (:features :state)
             -> respo.schema/Component
-            :features :js-ffi
+            :features :js-ffi :state
         'slurp $ %{} 'CodeEntry (:doc |)
           :code $ quote $ defmacro slurp (path)
             read-file $ str path
@@ -217,10 +217,11 @@
           :examples $ []
           :schema $ quote $ Fn
             Fn respo.dom/DomElement respo.schema/Component
-              Fn types/Op $ -> Unit
+              Fn types/Op (-> Unit) (:features :io :state)
               -> Unit
+              :features :io :js-ffi :state
             -> Unit
-            :features :js-ffi :state
+            :features :io :js-ffi :state
         'ssr? $ %{} 'CodeEntry (:doc |)
           :code $ quote $ defn ssr? ()
             .some? $ dom/query-selector |meta.respo-ssr
@@ -294,9 +295,8 @@
                   Map respo.schema/CoordKey app.types/StateValue
               (:content c) (assoc store :content c)
               (:hydrate-storage d) d
-              _ $ do (eprintln "|Unknown op:" op) store
           :examples $ []
-          :schema $ quote $ Fn app.types/Store app.types/Op String Number (-> app.types/Store) (:features :io)
+          :schema $ quote $ Fn app.types/Store app.types/Op String Number (-> app.types/Store)
           :tests $ [] $ %{} 'TestEntry (:name |typed-state-and-content)
             :code $ quote $ let
                 initial $ app.types/Store :states ({}) :content |
