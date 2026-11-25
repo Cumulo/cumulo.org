@@ -16,7 +16,7 @@ Workflow https://github.com/mvc-works/calcit-workflow
 
 ### 使用者影响
 
-本地和 CI 使用正式 Calcit 与 `@calcit/procs` **0.44.0**、Reel **0.11.5**。升级后重新安装依赖并构建前端。首页指南、书签和存档格式继续沿用。页面操作直接派发具名 `Op`，开发面板和快捷键通过独立回调传递 `reel.typed/Control`，两路在更新入口通过 union 汇合。DOM 渲染和 SSR 接管共用受管理的渲染帧。
+本地和 CI 使用正式 Calcit 与 `@calcit/procs` **0.45.1**、Reel **0.11.9**。升级后重新安装依赖并构建前端。首页指南、书签和存档格式继续沿用。页面操作直接派发具名 `Op`，开发面板和快捷键通过独立回调传递 `reel.typed/Control`，两路在更新入口通过 union 汇合。DOM 渲染和 SSR 接管共用受管理的渲染帧。
 
 ### 0.32.1 迁移记录
 
@@ -39,7 +39,7 @@ yarn build
 yarn dev
 ```
 
-CI 执行 Caps 六模块严格解析、CLI/procs 配对、immutable 安装、规范格式、全部定义、完整 strict、原两项测试、动态方法与废弃调用零上限及质量基线。构建的大 chunk 提示保留，不调高阈值，也不把它视为类型或运行验收通过的替代证据。源码仅维护 calcit.cirru/deps.cirru，禁止 compact/package/js-out 回流。先前版本曾在隔离页面验收首页 Markdown、高亮、五个链接目标和刷新，控制台无 warning/error；未访问外链。本次 0.44.0 升级尚未重新进行浏览器验收。
+CI 执行 Caps 六模块严格解析、CLI/procs 配对、immutable 安装、规范格式、全部定义、完整 strict、原两项测试、动态方法与废弃调用零上限及质量基线。构建的大 chunk 提示保留，不调高阈值，也不把它视为类型或运行验收通过的替代证据。源码仅维护 calcit.cirru/deps.cirru，禁止 compact/package/js-out 回流。先前版本曾在隔离页面验收首页 Markdown、高亮、五个链接目标和刷新，控制台无 warning/error；未访问外链。本次 0.45.1 升级已在隔离浏览器验证首页内容和链接显示，未访问外链。
 
 ### 持久化与已有迁移
 
